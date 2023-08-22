@@ -5,7 +5,6 @@ import io from "socket.io-client";
 import { useOutletContext } from "react-router-dom";
 
 function MainPanel() {
-  const socket = io("http://10.129.3.117:8080");
   const { loggedInUser, setLoggedInUser } = useOutletContext();
   const [myContacts, setMyContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
@@ -60,7 +59,7 @@ function MainPanel() {
               <ChatPanel
                 loggedInUser={loggedInUser}
                 selectedContact={selectedContact}
-                socket={socket}
+                // socket={socket}
               />
             </div>
           )}

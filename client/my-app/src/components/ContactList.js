@@ -40,7 +40,10 @@ function ContactList({ loggedInUser, myContacts, handleSelectedContact }) {
           />
         </label>
       </div>
-      <ul role="list" className=" divide-gray-100 flex-grow">
+      <ul
+        role="list"
+        className="divide-gray-100 flex-grow overflow-y-auto max-h-[calc(100vh-300px)]"
+      >
         {myContacts && myContacts.length > 0 ? (
           myContacts.map((contact) => (
             <Contact

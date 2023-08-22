@@ -12,6 +12,8 @@ flask-sqlalchemy = "*"
 flask-migrate = "*"
 sqlalchemy-serializer = "*"
 sqlalchemy = "*"
+werkzeug = "*"
+eventlet = "*"
 
 [dev-packages]
 

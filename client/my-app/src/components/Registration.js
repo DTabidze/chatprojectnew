@@ -20,7 +20,7 @@ export default function Register() {
 
   function handleFormSubmit(e) {
     e.preventDefault();
-    fetch("http://192.168.1.162:8080/users", {
+    fetch("http://10.129.3.117:8080/users", {
       method: "POST",
       headers: {
         "Content-type": "application/json",

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function Login() {
   const { loggedInUser, setLoggedInUser } = useOutletContext();
@@ -46,16 +47,20 @@ export default function Login() {
     }
   }
 
+  function handleRegister() {
+    navigate("/registration");
+  }
+
   return (
     <>
       {/* {Object.keys(loggedInUser).length === 0 ? ( */}
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <img
+          {/* <img
             className="mx-auto h-10 w-auto"
             // src="https://i.pinimg.com/1200x/50/cd/ca/50cdca2005c83652e0a1b807b8a95aac.jpg"
             alt="Your Company"
-          />
+          /> */}
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
             Sign in to your account
           </h2>
@@ -120,12 +125,12 @@ export default function Login() {
 
           <p className="mt-10 text-center text-sm text-gray-500">
             Not a member?{" "}
-            <a
-              href="/registration"
+            <Link
+              to="/registration"
               className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
             >
               Register Now
-            </a>
+            </Link>
           </p>
         </div>
       </div>

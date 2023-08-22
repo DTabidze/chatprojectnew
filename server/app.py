@@ -1,12 +1,24 @@
-from flask import Flask, render_template, request, session as flask_session
+from flask import Flask, jsonify, render_template, request, session as flask_session
 from flask_socketio import SocketIO, send, emit
 from flask_cors import CORS
 import json
-from config import app, db, socketio  # Import from config.py
+import os
+from config import (
+    app,
+    db,
+    socketio,
+    UPLOAD_FOLDER,
+    ALLOWED_EXTENSIONS,
+)  # Import from config.py
 from models import User, Message, Contact
 from random import randrange
 from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
+from werkzeug.utils import secure_filename
+
+# import eventlet
+
+# eventlet.monkey_patch()
 
 # app = Flask(__name__)
 # app.config["SECRET_KEY"] = "your_secret_key"
@@ -59,7 +71,6 @@ def handle_message(message):
         emit(
             "message", json.dumps(message_data), room=request.sid
         )  # Emit as JSON string
-        print(message_data)
 
     if "image" in msg:
         image_data = {
@@ -67,6 +78,7 @@ def handle_message(message):
             "timestamp": msg["timestamp"],
             "sender": sender_username,
         }
+        print("IMAGE SENT: ", image_data)
         recipient_sid = next(
             (sid for sid, username in users.items() if username == msg["recipient"]),
             None,
@@ -107,6 +119,16 @@ def session():
             "-contacts_received.user_first_obj.contacts_received",
             "-contacts_received.user_second_obj.contacts_sent",
             "-contacts_received.user_second_obj.contacts_received",
+            "-contacts_sent.user_first_obj.-sent_messages",
+            "-contacts_sent.user_first_obj.recieved_massages",
+            "-contacts_sent.user_second_obj.-sent_messages",
+            "-contacts_sent.user_second_obj.recieved_massages",
+            "-contacts_received.user_first_obj.-sent_messages",
+            "-contacts_received.user_first_obj.recieved_massages",
+            "-contacts_received.user_second_obj.-sent_messages",
+            "-contacts_received.user_second_obj.recieved_massages",
+            "-sent_messages",
+            "-recieved_massages",
         )
     )
 
@@ -138,6 +160,16 @@ def login():
             "-contacts_received.user_first_obj.contacts_received",
             "-contacts_received.user_second_obj.contacts_sent",
             "-contacts_received.user_second_obj.contacts_received",
+            "-contacts_sent.user_first_obj.-sent_messages",
+            "-contacts_sent.user_first_obj.recieved_massages",
+            "-contacts_sent.user_second_obj.-sent_messages",
+            "-contacts_sent.user_second_obj.recieved_massages",
+            "-contacts_received.user_first_obj.-sent_messages",
+            "-contacts_received.user_first_obj.recieved_massages",
+            "-contacts_received.user_second_obj.-sent_messages",
+            "-contacts_received.user_second_obj.recieved_massages",
+            "-sent_messages",
+            "-recieved_massages",
         )
     )
 
@@ -168,6 +200,16 @@ def get_user_by_id(id):
                     "-contacts_received.user_first_obj.contacts_received",
                     "-contacts_received.user_second_obj.contacts_sent",
                     "-contacts_received.user_second_obj.contacts_received",
+                    "-contacts_sent.user_first_obj.-sent_messages",
+                    "-contacts_sent.user_first_obj.recieved_massages",
+                    "-contacts_sent.user_second_obj.-sent_messages",
+                    "-contacts_sent.user_second_obj.recieved_massages",
+                    "-contacts_received.user_first_obj.-sent_messages",
+                    "-contacts_received.user_first_obj.recieved_massages",
+                    "-contacts_received.user_second_obj.-sent_messages",
+                    "-contacts_received.user_second_obj.recieved_massages",
+                    "-sent_messages",
+                    "-recieved_massages",
                 )
             ),
             200,
@@ -189,6 +231,16 @@ def get_user_by_id(id):
                         "-contacts_received.user_first_obj.contacts_received",
                         "-contacts_received.user_second_obj.contacts_sent",
                         "-contacts_received.user_second_obj.contacts_received",
+                        "-contacts_sent.user_first_obj.-sent_messages",
+                        "-contacts_sent.user_first_obj.recieved_massages",
+                        "-contacts_sent.user_second_obj.-sent_messages",
+                        "-contacts_sent.user_second_obj.recieved_massages",
+                        "-contacts_received.user_first_obj.-sent_messages",
+                        "-contacts_received.user_first_obj.recieved_massages",
+                        "-contacts_received.user_second_obj.-sent_messages",
+                        "-contacts_received.user_second_obj.recieved_massages",
+                        "-sent_messages",
+                        "-recieved_massages",
                     )
                 ),
                 200,
@@ -220,6 +272,16 @@ def get_users():
                         "-contacts_received.user_first_obj.contacts_received",
                         "-contacts_received.user_second_obj.contacts_sent",
                         "-contacts_received.user_second_obj.contacts_received",
+                        "-contacts_sent.user_first_obj.-sent_messages",
+                        "-contacts_sent.user_first_obj.recieved_massages",
+                        "-contacts_sent.user_second_obj.-sent_messages",
+                        "-contacts_sent.user_second_obj.recieved_massages",
+                        "-contacts_received.user_first_obj.-sent_messages",
+                        "-contacts_received.user_first_obj.recieved_massages",
+                        "-contacts_received.user_second_obj.-sent_messages",
+                        "-contacts_received.user_second_obj.recieved_massages",
+                        "-sent_messages",
+                        "-recieved_massages",
                     )
                 )
             )
@@ -243,6 +305,16 @@ def get_users():
                         "-contacts_received.user_first_obj.contacts_received",
                         "-contacts_received.user_second_obj.contacts_sent",
                         "-contacts_received.user_second_obj.contacts_received",
+                        "-contacts_sent.user_first_obj.-sent_messages",
+                        "-contacts_sent.user_first_obj.recieved_massages",
+                        "-contacts_sent.user_second_obj.-sent_messages",
+                        "-contacts_sent.user_second_obj.recieved_massages",
+                        "-contacts_received.user_first_obj.-sent_messages",
+                        "-contacts_received.user_first_obj.recieved_massages",
+                        "-contacts_received.user_second_obj.-sent_messages",
+                        "-contacts_received.user_second_obj.recieved_massages",
+                        "-sent_messages",
+                        "-recieved_massages",
                     )
                 ),
                 201,
@@ -258,7 +330,32 @@ def message_add_get():
         all = Message.query.all()
         messages = []
         for message in all:
-            messages.append(message.to_dict())
+            messages.append(
+                message.to_dict(
+                    rules=(
+                        # "-user_sender.sent_messages.user_sender",
+                        # "-user_sender.sent_messages.user_reciver",
+                        # "-user_sender.recieved_massages.user_sender",
+                        # "-user_sender.recieved_massages.user_reciver",
+                        # "-user_reciver.recieved_massages.user_reciver",
+                        # "-user_reciver.recieved_massages.user_sender",
+                        # "-user_reciver.sent_messages.user_reciver",
+                        # "-user_reciver.sent_messages.user_sender",
+                        # "-user_first_obj.-sent_messages",
+                        # "-user_first_obj.recieved_massages",
+                        # "-user_second_obj.-sent_messages",
+                        # "-user_second_obj.recieved_massages",
+                        # "-user_reciver.contact_sender",
+                        # "-user_reciver.contact_reciver",
+                        # "-user_sender.contact_sender",
+                        # "-user_sender.contact_reciver",
+                        # "-sender",
+                        # "-recipient",
+                        "-user_sender",
+                        "-user_reciver",
+                    )
+                )
+            )
         return messages, 200
     if request.method == "POST":
         data = request.json
@@ -268,7 +365,15 @@ def message_add_get():
                 setattr(message, key, data[key])
             db.session.add(message)
             db.session.commit()
-            return message.to_dict(), 201
+            return (
+                message.to_dict(
+                    rules=(
+                        "-user_sender",
+                        "-user_reciver",
+                    )
+                ),
+                201,
+            )
         except (IntegrityError, ValueError) as ie:
             return {"error": ie.args}, 422
 
@@ -287,7 +392,15 @@ def message_edit_remove(id):
             for key in data:
                 setattr(message, key, data[key])
             db.session.commit()
-            return message.to_dict(), 200
+            return (
+                message.to_dict(
+                    rules=(
+                        "-user_sender",
+                        "-user_reciver",
+                    )
+                ),
+                200,
+            )
         except (IntegrityError, ValueError) as ie:
             return {"error": ie.args}, 422
     elif request.method == "DELETE":
@@ -314,6 +427,10 @@ def contact_list():
                         "-user_first_obj.contacts_received.user_second_obj",
                         "-user_second_obj.contacts_received.user_first_obj",
                         "-user_second_obj.contacts_received.user_second_obj",
+                        "-user_first_obj.-sent_messages",
+                        "-user_first_obj.recieved_massages",
+                        "-user_second_obj.-sent_messages",
+                        "-user_second_obj.recieved_massages",
                     )
                 )
             )
@@ -337,6 +454,10 @@ def contact_list():
                         "-user_first_obj.contacts_received.user_second_obj",
                         "-user_second_obj.contacts_received.user_first_obj",
                         "-user_second_obj.contacts_received.user_second_obj",
+                        "-user_first_obj.-sent_messages",
+                        "-user_first_obj.recieved_massages",
+                        "-user_second_obj.-sent_messages",
+                        "-user_second_obj.recieved_massages",
                     )
                 ),
                 201,
@@ -357,7 +478,63 @@ def contact_delete(id):
         return {"message": "contact deleted"}, 200
 
 
+# UPLOAD FILE
+# @app.route("/upload", methods=["POST"])
+# def upload_file():
+#     # check if the post request has the file part
+#     if "files[]" not in request.files:
+#         resp = jsonify({"message": "No file part in the request", "status": "failed"})
+#         resp.status_code = 400
+#         return resp
+
+#     files = request.files.getlist("files[]")
+
+#     errors = {}
+#     success = False
+
+#     for file in files:
+#         if file and ALLOWED_EXTENSIONS(file.filename):
+#             filename = secure_filename(file.filename)
+#             file.save(os.path.join(app.config[UPLOAD_FOLDER], filename))
+#             success = True
+#         else:
+#             resp = jsonify({"message": "File type is not allowed", "status": "failed"})
+#             return resp
+
+#     if success and errors:
+#         errors["message"] = "File(s) successfully uploaded"
+#         errors["status"] = "failed"
+#         resp = jsonify(errors)
+#         resp.status_code = 500
+#         return resp
+#     if success:
+#         resp = jsonify({"message": "Files successfully uploaded", "status": "successs"})
+#         resp.status_code = 201
+#         return resp
+#     else:
+#         resp = jsonify(errors)
+#         resp.status_code = 500
+#         return resp
+
+
+@app.route("/uploadimage", methods=["GET", "POST"])
+def upload_file():
+    print(request.files)
+    if request.method == "POST":
+        if "file1" not in request.files:
+            return "there is no file1 in form!"
+        file1 = request.files["file1"]
+        path = os.path.join(app.config[UPLOAD_FOLDER], file1.filename)
+        file1.save(path)
+        print(path)
+        return path
+
+        return "ok"
+    print("FAILURE!!!!")
+    return ""
+
+
 if __name__ == "__main__":
     # app.run(port=5555, debug=True)
     # socketio.run(app, host="192.168.1.162", port=8080, debug=True)
-    socketio.run(app, port=8080, host="10.129.3.117", debug=True)
+    socketio.run(app, port=8080, host="10.129.3.117", debug=True, log_output=True)

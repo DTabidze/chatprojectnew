@@ -38,7 +38,7 @@ class User(db.Model, SerializerMixin):
     )
 
     recieved_massages = db.relationship(
-        "Message", foreign_keys="Message.reciever", back_populates="user_reciver"
+        "Message", foreign_keys="Message.recipient", back_populates="user_reciver"
     )
 
     # RULES
@@ -51,6 +51,16 @@ class User(db.Model, SerializerMixin):
         "-contacts_received.user_first_obj.contacts_received",
         "-contacts_received.user_second_obj.contacts_sent",
         "-contacts_received.user_second_obj.contacts_received",
+        "-contacts_sent.user_first_obj.-sent_messages",
+        "-contacts_sent.user_first_obj.recieved_massages",
+        "-contacts_sent.user_second_obj.-sent_messages",
+        "-contacts_sent.user_second_obj.recieved_massages",
+        "-contacts_received.user_first_obj.-sent_messages",
+        "-contacts_received.user_first_obj.recieved_massages",
+        "-contacts_received.user_second_obj.-sent_messages",
+        "-contacts_received.user_second_obj.recieved_massages",
+        "-sent_messages",
+        "-recieved_massages",
     )
 
     @hybrid_property
@@ -74,10 +84,10 @@ class Message(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     sender = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    reciever = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    recipient = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     message_type = db.Column(db.Integer, nullable=False)
     date = db.Column(db.DateTime, default=db.func.now())
-    body = db.Column(db.String, nullable=False)
+    text = db.Column(db.String, nullable=False)
     seen = db.Column(db.String, default="False", nullable=False)
     reaction_emoji = db.Column(db.String, default=None)
     modified_date = db.Column(db.DateTime, default=None)
@@ -89,16 +99,26 @@ class Message(db.Model, SerializerMixin):
     )
 
     user_reciver = db.relationship(
-        "User", foreign_keys="Message.reciever", back_populates="recieved_massages"
+        "User", foreign_keys="Message.recipient", back_populates="recieved_massages"
     )
 
     # Rules
 
     serialize_rules = (
-        "-user_sender.sent_messages.user_sender",
-        "-user_sender.sent_messages.user_reciver",
-        "-user_reciver.recieved_massages.user_reciver",
-        "-user_reciver.recieved_massages.user_sender",
+        # "-user_sender.sent_messages.user_sender",
+        # "-user_sender.sent_messages.user_reciver",
+        # "-user_sender.recieved_massages.user_sender",
+        # "-user_sender.recieved_massages.user_reciver",
+        # "-user_reciver.recieved_massages.user_reciver",
+        # "-user_reciver.recieved_massages.user_sender",
+        # "-user_reciver.sent_messages.user_reciver",
+        # "-user_reciver.sent_messages.user_sender",
+        # "-user_first_obj.-sent_messages",
+        # "-user_first_obj.recieved_massages",
+        # "-user_second_obj.-sent_messages",
+        # "-user_second_obj.recieved_massages",
+        "-user_sender",
+        "-user_reciver",
     )
 
 
@@ -126,6 +146,12 @@ class Contact(db.Model, SerializerMixin):
     )
 
     serialize_rules = (
-        "-user_first_obj.contacts_sent",
-        "-user_second_obj.contacts_received",
+        "-user_first_obj.contacts_sent.user_first_obj",
+        "-user_first_obj.contacts_sent.user_second_obj",
+        "-user_second_obj.contacts_sent.user_first_obj",
+        "-user_second_obj.contacts_sent.user_second_obj",
+        "-user_first_obj.contacts_received.user_first_obj",
+        "-user_first_obj.contacts_received.user_second_obj",
+        "-user_second_obj.contacts_received.user_first_obj",
+        "-user_second_obj.contacts_received.user_second_obj",
     )
