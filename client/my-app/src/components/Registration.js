@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SERVER_BASE_URL from "./config";
 
 export default function Register() {
   const [newUser, setNewUser] = useState({
@@ -20,7 +21,7 @@ export default function Register() {
 
   function handleFormSubmit(e) {
     e.preventDefault();
-    fetch("http://10.129.3.117:8080/users", {
+    fetch(`${SERVER_BASE_URL}/users`, {
       method: "POST",
       headers: {
         "Content-type": "application/json",

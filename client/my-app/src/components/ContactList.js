@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Contact from "./Contact";
-
+import SERVER_BASE_URL from "./config";
 function ContactList({ loggedInUser, myContacts, handleSelectedContact }) {
   const [isSearchVisible, setSearchVisible] = useState(false);
 

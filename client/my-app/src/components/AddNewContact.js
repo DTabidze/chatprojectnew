@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
-
+import SERVER_BASE_URL from "./config";
 const AddNewContact = () => {
   const { loggedInUser, refreshUser } = useOutletContext();
   const [users, setUsers] = useState([]);
@@ -12,7 +12,7 @@ const AddNewContact = () => {
   useEffect(() => {
     async function fetchAllUsers() {
       try {
-        const response = await fetch("http://10.129.3.117:8080/users", {
+        const response = await fetch(`${SERVER_BASE_URL}/users`, {
           method: "GET",
           credentials: "include",
         });
@@ -38,7 +38,7 @@ const AddNewContact = () => {
   useEffect(() => {
     async function fetchMyContactList() {
       try {
-        const response = await fetch("http://10.129.3.117:8080/contacts", {
+        const response = await fetch(`${SERVER_BASE_URL}/contacts`, {
           method: "GET",
           credentials: "include",
         });

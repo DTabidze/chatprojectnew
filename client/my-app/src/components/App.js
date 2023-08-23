@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
-import MainPanel from "./MainPanel";
-import Login from "./Login";
+
+import SERVER_BASE_URL from "./config";
 
 function App() {
   const [loggedInUser, setLoggedInUser] = useState({});
@@ -9,7 +9,7 @@ function App() {
 
   const refreshUser = async () => {
     try {
-      const response = await fetch("http://10.129.3.117:8080/session", {
+      const response = await fetch(`${SERVER_BASE_URL}/session`, {
         method: "GET",
         credentials: "include",
       });

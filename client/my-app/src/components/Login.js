@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
 import { Link } from "react-router-dom";
+import SERVER_BASE_URL from "./config";
 
 export default function Login() {
   const { loggedInUser, setLoggedInUser } = useOutletContext();
@@ -25,7 +26,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://10.129.3.117:8080/login", {
+      const response = await fetch(`${SERVER_BASE_URL}/login`, {
         method: "POST",
         headers: {
           "Content-type": "application/json",

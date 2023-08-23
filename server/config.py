@@ -9,10 +9,11 @@ from flask_socketio import SocketIO
 import os
 from secret_keys import secret_key
 
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE = os.environ.get("DB_URI", f"sqlite:///{os.path.join(BASE_DIR, 'app.db')}")
 UPLOAD_FOLDER = "static/"
-ALLOWED_EXTENSIONS = set(["png", "jpg", "jpeg", "gif"])
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER

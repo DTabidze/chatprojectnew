@@ -2,22 +2,51 @@ import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import sendIcon from "../icons/icons8-send-96.png";
 import sendPic from "../icons/icons8-send-image-96.png";
+import SERVER_BASE_URL from "./config";
+import Picker from "emoji-picker-react";
 
 function ChatPanel({ selectedContact, loggedInUser }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const inputRef = useRef(null);
   const [socket, setSocket] = useState(null);
-  // const handleLogin = () => {
-  //   // Emit the login event to the server
-  //   const username = loggedInUser.username;
-  //   console.log("USER LOGGED IN HANDLE: ", username);
-  //   socket.emit("login", { username });
-  // };
+  const [showPicker, setShowPicker] = useState(false);
+
+  const fetchChatHistory = async () => {
+    if (!selectedContact) return;
+
+    try {
+      const response = await fetch(
+        `${SERVER_BASE_URL}/messages?senderId=${loggedInUser.id}&recipientId=${selectedContact.id}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const chatHistory = await response.json();
+        setMessages(chatHistory);
+        console.log(messages);
+      } else {
+        console.log(`Error fetching chat history: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch chat history when selectedContact changes
+    fetchChatHistory();
+  }, [selectedContact]);
 
   useEffect(() => {
     // Create the socket connection once when the component mounts
-    const newSocket = io("http://10.129.3.117:8080");
+    const newSocket = io("10.129.3.117:8080");
     setSocket(newSocket);
 
     // Clean up the socket connection when the component unmounts
@@ -28,7 +57,6 @@ function ChatPanel({ selectedContact, loggedInUser }) {
 
   useEffect(() => {
     if (!socket) return;
-    console.log(socket);
     socket.removeAllListeners();
     socket.on("message", (message) => {
       try {
@@ -38,10 +66,19 @@ function ChatPanel({ selectedContact, loggedInUser }) {
           `USER: ${loggedInUser.username}`
         );
 
-        // Only add the received message to state if the sender is not the same as the logged-in user
-        if (parsedMessage.sender !== loggedInUser.username) {
+        console.log(parsedMessage);
+        console.log("LOGGED IN USER: ", loggedInUser.username);
+        console.log("SELECTED USER: ", selectedContact.username);
+        if (
+          parsedMessage.sender !== loggedInUser.username &&
+          parsedMessage.recipient === loggedInUser.username &&
+          parsedMessage.sender === selectedContact.username
+        ) {
           setMessages((prevMessages) => [...prevMessages, parsedMessage]);
         }
+        // if (parsedMessage.sender !== loggedInUser.username) {
+        //   setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+        // }
       } catch (error) {
         console.error("Error parsing JSON:", error);
       }
@@ -56,7 +93,11 @@ function ChatPanel({ selectedContact, loggedInUser }) {
       socket.removeAllListeners("message");
       socket.off("connect");
     };
-  }, [socket, loggedInUser]);
+  }, [socket, loggedInUser, selectedContact]);
+
+  function handleInputText(e) {
+    setNewMessage(e.target.value);
+  }
 
   const sendMessage = () => {
     if (newMessage.trim() === "" || selectedContact.username.trim() === "")
@@ -74,7 +115,7 @@ function ChatPanel({ selectedContact, loggedInUser }) {
       sender: loggedInUser.id, // Add sender information
       message_type: "text",
     };
-    fetch("http://10.129.3.117:8080/messages", {
+    fetch(`${SERVER_BASE_URL}/messages`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -114,12 +155,16 @@ function ChatPanel({ selectedContact, loggedInUser }) {
         };
         socket.send(JSON.stringify(messageObject));
         setMessages((prevMessages) => [...prevMessages, messageObject]);
-        // console.log(messages);
       };
 
       reader.readAsDataURL(file);
       setNewMessage("");
     }
+  };
+
+  const onEmojiClick = (emojiObject) => {
+    setNewMessage((prevNewMessage) => prevNewMessage + emojiObject.emoji);
+    setShowPicker(false);
   };
   return (
     <div className="flex flex-col h-full">
@@ -131,14 +176,16 @@ function ChatPanel({ selectedContact, loggedInUser }) {
           <div
             key={index}
             className={`flex ${
-              message.sender === loggedInUser.username
+              message.sender === loggedInUser.username ||
+              message.sender === loggedInUser.id
                 ? "justify-end"
                 : "justify-start"
             } mb-2`}
           >
             <div
               className={`rounded-lg p-2 ${
-                message.sender === loggedInUser.username
+                message.sender === loggedInUser.username ||
+                message.sender === loggedInUser.id
                   ? "bg-blue-500 text-white"
                   : "bg-gray-200"
               }`}
@@ -153,7 +200,8 @@ function ChatPanel({ selectedContact, loggedInUser }) {
                     maxHeight: "300px",
                     // Add alignment here
                     alignSelf:
-                      message.sender === loggedInUser.username
+                      message.sender === loggedInUser.username ||
+                      message.sender === loggedInUser.id
                         ? "flex-end"
                         : "flex-start",
                   }}
@@ -169,7 +217,7 @@ function ChatPanel({ selectedContact, loggedInUser }) {
         <input
           type="text"
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={handleInputText}
           placeholder="Type your message..."
           className="flex-grow px-2 py-1 rounded-lg border border-gray-300"
           onKeyDown={(e) => {
@@ -186,6 +234,14 @@ function ChatPanel({ selectedContact, loggedInUser }) {
           style={{ display: "none" }}
           onChange={sendImage}
         />
+        <img
+          className="emoji-icon"
+          src="https://icons.getbootstrap.com/assets/icons/emoji-smile.svg"
+          onClick={() => setShowPicker((val) => !val)}
+        />
+        {showPicker && (
+          <Picker pickerStyle={{ width: "100%" }} onEmojiClick={onEmojiClick} />
+        )}
         <button onClick={() => inputRef.current.click()}>
           <img src={sendPic} alt="Choose" className="w-6 h-6" />
         </button>

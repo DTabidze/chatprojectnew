@@ -1,3 +1,4 @@
+import SERVER_BASE_URL from "./config";
 const Contact = ({ contact, handleSelectedContact }) => {
   return (
     <div onClick={() => handleSelectedContact(contact)}>

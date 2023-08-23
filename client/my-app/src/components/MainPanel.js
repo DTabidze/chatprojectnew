@@ -3,14 +3,15 @@ import ContactList from "./ContactList";
 import ChatPanel from "./ChatPanel";
 import io from "socket.io-client";
 import { useOutletContext } from "react-router-dom";
+import SERVER_BASE_URL from "./config";
 
 function MainPanel() {
   const { loggedInUser, setLoggedInUser } = useOutletContext();
   const [myContacts, setMyContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   function handleSelectedContact(contact) {
-    setSelectedContact(contact);
-    console.log("SELECTED CONTACT: ", selectedContact);
+    setSelectedContact((prevSelectedContact) => contact);
+    console.log("SELECTED CONTACT MAINPANEL: ", selectedContact);
   }
   console.log("LOGGED IN USER MAINPANEL: ", loggedInUser);
 

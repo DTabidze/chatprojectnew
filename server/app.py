@@ -1,4 +1,13 @@
-from flask import Flask, jsonify, render_template, request, session as flask_session
+from flask import (
+    Flask,
+    jsonify,
+    flash,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session as flask_session,
+)
 from flask_socketio import SocketIO, send, emit
 from flask_cors import CORS
 import json
@@ -12,9 +21,10 @@ from config import (
 )  # Import from config.py
 from models import User, Message, Contact
 from random import randrange
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
+import uuid
 
 # import eventlet
 
@@ -59,6 +69,7 @@ def handle_message(message):
         message_data = {
             "text": msg["text"],
             "sender": sender_username,
+            "recipient": msg["recipient"],
         }
         recipient_sid = next(
             (sid for sid, username in users.items() if username == msg["recipient"]),
@@ -327,36 +338,27 @@ def get_users():
 @app.route("/messages", methods=["GET", "POST"])
 def message_add_get():
     if request.method == "GET":
-        all = Message.query.all()
-        messages = []
-        for message in all:
-            messages.append(
-                message.to_dict(
-                    rules=(
-                        # "-user_sender.sent_messages.user_sender",
-                        # "-user_sender.sent_messages.user_reciver",
-                        # "-user_sender.recieved_massages.user_sender",
-                        # "-user_sender.recieved_massages.user_reciver",
-                        # "-user_reciver.recieved_massages.user_reciver",
-                        # "-user_reciver.recieved_massages.user_sender",
-                        # "-user_reciver.sent_messages.user_reciver",
-                        # "-user_reciver.sent_messages.user_sender",
-                        # "-user_first_obj.-sent_messages",
-                        # "-user_first_obj.recieved_massages",
-                        # "-user_second_obj.-sent_messages",
-                        # "-user_second_obj.recieved_massages",
-                        # "-user_reciver.contact_sender",
-                        # "-user_reciver.contact_reciver",
-                        # "-user_sender.contact_sender",
-                        # "-user_sender.contact_reciver",
-                        # "-sender",
-                        # "-recipient",
-                        "-user_sender",
-                        "-user_reciver",
-                    )
+        sender_id = request.args.get("senderId")
+        recipient_id = request.args.get("recipientId")
+        print(sender_id, "  IDS    ", recipient_id)
+        messages = Message.query.filter(
+            or_(
+                and_(Message.sender == sender_id, Message.recipient == recipient_id),
+                and_(Message.sender == recipient_id, Message.recipient == sender_id),
+            )
+        ).all()
+        print(messages)
+        message_dicts = [
+            message.to_dict(
+                rules=(
+                    "-user_sender",
+                    "-user_reciver",
                 )
             )
-        return messages, 200
+            for message in messages
+        ]
+
+        return message_dicts, 200
     if request.method == "POST":
         data = request.json
         message = Message()
@@ -479,59 +481,36 @@ def contact_delete(id):
 
 
 # UPLOAD FILE
-# @app.route("/upload", methods=["POST"])
-# def upload_file():
-#     # check if the post request has the file part
-#     if "files[]" not in request.files:
-#         resp = jsonify({"message": "No file part in the request", "status": "failed"})
-#         resp.status_code = 400
-#         return resp
 
-#     files = request.files.getlist("files[]")
 
-#     errors = {}
-#     success = False
-
-#     for file in files:
-#         if file and ALLOWED_EXTENSIONS(file.filename):
-#             filename = secure_filename(file.filename)
-#             file.save(os.path.join(app.config[UPLOAD_FOLDER], filename))
-#             success = True
-#         else:
-#             resp = jsonify({"message": "File type is not allowed", "status": "failed"})
-#             return resp
-
-#     if success and errors:
-#         errors["message"] = "File(s) successfully uploaded"
-#         errors["status"] = "failed"
-#         resp = jsonify(errors)
-#         resp.status_code = 500
-#         return resp
-#     if success:
-#         resp = jsonify({"message": "Files successfully uploaded", "status": "successs"})
-#         resp.status_code = 201
-#         return resp
-#     else:
-#         resp = jsonify(errors)
-#         resp.status_code = 500
-#         return resp
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route("/uploadimage", methods=["GET", "POST"])
 def upload_file():
-    print(request.files)
     if request.method == "POST":
-        if "file1" not in request.files:
-            return "there is no file1 in form!"
-        file1 = request.files["file1"]
-        path = os.path.join(app.config[UPLOAD_FOLDER], file1.filename)
-        file1.save(path)
-        print(path)
-        return path
-
-        return "ok"
-    print("FAILURE!!!!")
-    return ""
+        print(request.files)
+        # check if the post request has the file part
+        if "file" not in request.files:
+            flash("No file part")
+            return redirect(request.url)
+        file = request.files["file"]
+        print(file)
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == "":
+            flash("No selected file")
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            # Generate a unique filename using UUID
+            unique_filename = str(uuid.uuid4()) + "_" + secure_filename(file.filename)
+            print(unique_filename)
+            file.save(os.path.join(UPLOAD_FOLDER, unique_filename))
+            print("DONE")
+            # return redirect(url_for("uploaded_file", filename=unique_filename))
+            return {"filename": unique_filename}
+    return {}
 
 
 if __name__ == "__main__":
