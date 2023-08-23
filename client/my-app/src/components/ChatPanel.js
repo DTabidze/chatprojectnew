@@ -102,7 +102,7 @@ function ChatPanel({ selectedContact, loggedInUser }) {
   const sendMessage = () => {
     if (newMessage.trim() === "" || selectedContact.username.trim() === "")
       return;
-
+    console.log("MESSAGE TEXT: ", newMessage);
     const messageObject = {
       text: newMessage,
       recipient: selectedContact.username, //Add Reciver information
@@ -137,30 +137,91 @@ function ChatPanel({ selectedContact, loggedInUser }) {
     setMessages((prevMessages) => [...prevMessages, messageObject]); // Append the message as an object
     setNewMessage(""); // Clear the new message input
   };
-
-  const sendImage = () => {
+  const sendImage = async () => {
     const input = inputRef.current;
 
     if (input && input.files && input.files.length > 0) {
       const file = input.files[0];
-      const reader = new FileReader();
+      const formData = new FormData();
+      formData.append("file", file);
 
-      reader.onload = (event) => {
-        const imageBase64 = event.target.result;
-        const messageObject = {
-          image: imageBase64,
-          timestamp: new Date().getTime(),
-          isMe: true,
-          recipient: selectedContact.username,
-        };
-        socket.send(JSON.stringify(messageObject));
-        setMessages((prevMessages) => [...prevMessages, messageObject]);
-      };
+      try {
+        const response = await fetch(`${SERVER_BASE_URL}/uploadimage`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
 
-      reader.readAsDataURL(file);
-      setNewMessage("");
+        if (response.ok) {
+          const data = await response.json();
+          const dbMessageObject = {
+            text: data.filename, // Set the filename as the image URL
+            // timestamp: new Date().getTime(),
+            recipient: selectedContact.id,
+            sender: loggedInUser.id,
+            message_type: "image", // Set the message type as "image"
+          };
+          const messageObject = {
+            text: data.filename, // Set the filename as the image URL
+            // timestamp: new Date().getTime(),
+            recipient: selectedContact.username,
+            sender: loggedInUser.username,
+            message_type: "image", // Set the message type as "image"
+          };
+          fetch(`${SERVER_BASE_URL}/messages`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-type": "application/json",
+            },
+            body: JSON.stringify(dbMessageObject),
+          })
+            .then((res) => {
+              if (res.ok) {
+                socket.emit("message", JSON.stringify(messageObject));
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+
+          // socket.emit("message", JSON.stringify(messageObject));
+          setMessages((prevMessages) => [...prevMessages, messageObject]);
+          console.log("Uploaded filename:", data.filename);
+        } else {
+          console.error("Failed to upload file:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
+
+      // setNewMessage("");
     }
   };
+  // const sendImage = () => {
+
+  //   // const input = inputRef.current;
+
+  //   // if (input && input.files && input.files.length > 0) {
+  //   //   const file = input.files[0];
+  //   //   const reader = new FileReader();
+
+  //   //   reader.onload = (event) => {
+  //   //     const imageBase64 = event.target.result;
+  //   //     const messageObject = {
+  //   //       image: imageBase64,
+  //   //       timestamp: new Date().getTime(),
+  //   //       isMe: true,
+  //   //       recipient: selectedContact.username,
+  //   //     };
+  //   //     socket.send(JSON.stringify(messageObject));
+  //   //     setMessages((prevMessages) => [...prevMessages, messageObject]);
+  //   //   };
+
+  //   //   reader.readAsDataURL(file);
+  //   //   setNewMessage("");
+  //   // }
+  // };
 
   const onEmojiClick = (emojiObject) => {
     setNewMessage((prevNewMessage) => prevNewMessage + emojiObject.emoji);
@@ -190,10 +251,10 @@ function ChatPanel({ selectedContact, loggedInUser }) {
                   : "bg-gray-200"
               }`}
             >
-              {message.text && <p>{message.text}</p>}
-              {message.image && (
+              {message.message_type === "text" && <p>{message.text}</p>}
+              {message.message_type === "image" && (
                 <img
-                  src={message.image}
+                  src={`${SERVER_BASE_URL}/static/${message.text}`}
                   alt={`${message.sender}`}
                   style={{
                     maxWidth: "100%",

@@ -70,6 +70,7 @@ def handle_message(message):
             "text": msg["text"],
             "sender": sender_username,
             "recipient": msg["recipient"],
+            "message_type": msg["message_type"],
         }
         recipient_sid = next(
             (sid for sid, username in users.items() if username == msg["recipient"]),
