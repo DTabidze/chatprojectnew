@@ -19,6 +19,9 @@ export default function Register() {
     }));
   }
 
+  function handleCancel() {
+    navigate("/login");
+  }
   function handleFormSubmit(e) {
     e.preventDefault();
     fetch(`${SERVER_BASE_URL}/users`, {
@@ -168,6 +171,7 @@ export default function Register() {
 
         <div className="mt-6 flex items-center justify-end gap-x-6">
           <button
+            onClick={handleCancel}
             type="button"
             className="text-sm font-semibold leading-6 text-gray-900"
           >

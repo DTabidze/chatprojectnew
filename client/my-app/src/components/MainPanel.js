@@ -3,7 +3,7 @@ import ContactList from "./ContactList";
 import ChatPanel from "./ChatPanel";
 import ProfilePage from "./ProfilePage"; // Make sure you have this component imported
 import io from "socket.io-client";
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import SERVER_BASE_URL from "./config";
 
 function MainPanel() {
@@ -11,13 +11,29 @@ function MainPanel() {
   const [myContacts, setMyContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const [showProfilePage, setShowProfilePage] = useState(false); // State for showing profile modal
-
+  const navigate = useNavigate();
   function handleSelectedContact(contact) {
     setSelectedContact(contact);
   }
 
   function toggleProfileModal() {
     setShowProfilePage(!showProfilePage);
+  }
+  function handleLogOut(e) {
+    e.stopPropagation();
+    console.log("LOGOUT");
+    fetch(`${SERVER_BASE_URL}/logout`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        "Content-type": "application/json",
+      },
+    }).then((res) => {
+      if (res.ok) {
+        setLoggedInUser({});
+        navigate("/login");
+      }
+    });
   }
 
   useEffect(() => {
@@ -55,6 +71,9 @@ function MainPanel() {
                 <p className="text-sm font-semibold leading-6 text-gray-900">
                   {loggedInUser.fname + " " + loggedInUser.lname}
                 </p>
+                <div className="text-gray-500">
+                  <button onClick={handleLogOut}>Log Out</button>
+                </div>
               </div>
             </div>
             <ContactList
