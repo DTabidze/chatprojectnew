@@ -91,7 +91,7 @@ class Message(db.Model, SerializerMixin):
     text = db.Column(db.String, nullable=False)
     seen = db.Column(db.String, default="False", nullable=False)
     reaction_emoji = db.Column(db.String, default=None)
-    modified_date = db.Column(db.DateTime, default=None)
+    modified_date = db.Column(db.DateTime, onupdate=db.func.now())
     previous_body = db.Column(db.String, default=None)
 
     # Relationships

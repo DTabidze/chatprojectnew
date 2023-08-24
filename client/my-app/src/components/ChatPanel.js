@@ -18,6 +18,11 @@ function ChatPanel({
   const [socket, setSocket] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showUserProfilePage, setUserShowProfilePage] = useState(false);
+  const [editedMessages, setEditedMessages] = useState({});
+  const [editedMessageId, setEditedMessageId] = useState(null);
+  const [editedMessageText, setEditedMessageText] = useState("");
+
+  console.log("EDITED TEXT: ", editedMessageText, editedMessageId);
 
   const fetchChatHistory = async () => {
     if (!selectedContact) return;
@@ -53,7 +58,7 @@ function ChatPanel({
 
   useEffect(() => {
     // Create the socket connection once when the component mounts
-    const newSocket = io("192.168.1.162:8080");
+    const newSocket = io("10.129.3.117:8080");
     setSocket(newSocket);
 
     // Clean up the socket connection when the component unmounts
@@ -73,7 +78,7 @@ function ChatPanel({
           `USER: ${loggedInUser.username}`
         );
 
-        console.log(parsedMessage);
+        console.log("PARSED MSG: ", parsedMessage);
         console.log("LOGGED IN USER: ", loggedInUser.username);
         console.log("SELECTED USER: ", selectedContact.username);
         if (
@@ -95,7 +100,14 @@ function ChatPanel({
       console.log("USER LOGGED IN HANDLE: ", username);
       socket.emit("login", { username });
     });
-
+    socket.on("update_message", (updatedMessage) => {
+      // Update the messages state to replace the existing message with the updated message
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === updatedMessage.id ? updatedMessage : msg
+        )
+      );
+    });
     return () => {
       socket.removeAllListeners("message");
       socket.off("connect");
@@ -138,6 +150,7 @@ function ChatPanel({
       })
       .then((msg) => {
         messageObject.id = msg.id;
+        messageObject.date = msg.date;
         console.log("MSG: ", msg);
         console.log("MSG OBJ: ", messageObject);
         socket.emit("message", JSON.stringify(messageObject));
@@ -201,6 +214,7 @@ function ChatPanel({
             })
             .then((msg) => {
               messageObject.id = msg.id;
+              messageObject.date = msg.date;
               console.log("MSG: ", msg);
               console.log("MSG OBJ: ", messageObject);
               socket.emit("message", JSON.stringify(messageObject));
@@ -223,9 +237,54 @@ function ChatPanel({
     setNewMessage((prevNewMessage) => prevNewMessage + emojiObject.emoji);
     setShowPicker(false);
   };
-
+  // SHOW USER PROFILE
   function toggleUserProfileModal() {
     setUserShowProfilePage(!showUserProfilePage);
+  }
+  // HANDLE DELETING MESSAGE
+  async function handleDeleteMessage(e, message, editedText) {
+    console.log(message.text);
+    message.previous_body = message.text;
+    if (e.target.name === "saveButton") {
+      if (editedText.length === 0) {
+        return;
+      }
+      message.text = editedText;
+    } else {
+      message.text = "This message has been deleted...";
+    }
+
+    console.log(message);
+
+    try {
+      const response = await fetch(
+        `${SERVER_BASE_URL}/messages/${message.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(message),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("DELETED MESSAGE: ", data);
+
+        // Update messages state by replacing the modified message
+        const updatedMessages = messages.map((msg) =>
+          msg.id === data.id ? data : msg
+        );
+        socket.emit("message_updated", data, selectedContact.username); //RERENDER SELECTED USER's CHAT THAT MESSAGE WAS EDITED
+        setMessages(updatedMessages);
+      } else {
+        console.error("Failed to delete message:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
   }
 
   return (
@@ -240,10 +299,6 @@ function ChatPanel({
           onClose={toggleUserProfileModal}
         />
       )}
-      {/* <h1 className="text-lg font-semibold mb-4">
-        {selectedContact.fname + " " + selectedContact.lname}
-      </h1>
-      <button>Delete</button> */}
       <div
         className="flex min-w-0 gap-x-4 p-4 cursor-pointer ml-auto items-center" // Add items-center class
         onClick={toggleUserProfileModal}
@@ -278,23 +333,74 @@ function ChatPanel({
                   : "bg-gray-200"
               }`}
             >
-              {message.message_type === "text" && <p>{message.text}</p>}
-              {message.message_type === "image" && (
-                <img
-                  src={`${SERVER_BASE_URL}/static/${message.text}`}
-                  alt={`${message.sender}`}
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "300px",
-                    alignSelf:
-                      message.sender === loggedInUser.username ||
-                      message.sender === loggedInUser.id
-                        ? "flex-end"
-                        : "flex-start",
-                  }}
-                />
+              {editedMessageId === message.id ? (
+                <div>
+                  <input
+                    type="text"
+                    style={{ color: "black" }}
+                    value={editedMessageText}
+                    onChange={(e) => setEditedMessageText(e.target.value)}
+                  />
+                  <button
+                    name="saveButton"
+                    onClick={(e) => {
+                      handleDeleteMessage(e, message, editedMessageText);
+                      setEditedMessageId(null); // Reset edit state
+                      setEditedMessageText(""); // Reset input value
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditedMessageId(null); // Reset edit state
+                      setEditedMessageText(""); // Reset input value
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  {message.message_type === "text" ? (
+                    <p>{message.text}</p>
+                  ) : (
+                    <img
+                      src={`${SERVER_BASE_URL}/static/${message.text}`}
+                      alt={`${message.sender}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "300px",
+                        alignSelf:
+                          message.sender === loggedInUser.username ||
+                          message.sender === loggedInUser.id
+                            ? "flex-end"
+                            : "flex-start",
+                      }}
+                    />
+                  )}
+                  <span>{message.modified_date || message.date}</span>
+                  {message.sender === loggedInUser.username ||
+                  message.sender === loggedInUser.id ? (
+                    <>
+                      {message.message_type === "text" &&
+                        message.previous_body === null && (
+                          <button
+                            onClick={() => {
+                              setEditedMessageId(message.id);
+                              setEditedMessageText(message.text);
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
+                      <button onClick={(e) => handleDeleteMessage(e, message)}>
+                        Delete
+                      </button>
+                    </>
+                  ) : null}
+                </div>
               )}
-              <span>{message.sender}</span>
             </div>
           </div>
         ))}

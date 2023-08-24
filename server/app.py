@@ -25,6 +25,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 import uuid
+from datetime import datetime
 
 # import eventlet
 
@@ -71,6 +72,8 @@ def handle_message(message):
             "sender": sender_username,
             "recipient": msg["recipient"],
             "message_type": msg["message_type"],
+            "date": msg["date"],
+            "id": msg["id"],
         }
         recipient_sid = next(
             (sid for sid, username in users.items() if username == msg["recipient"]),
@@ -100,6 +103,16 @@ def handle_message(message):
                 "message", json.dumps(image_data), room=recipient_sid
             )  # Emit as JSON string
         emit("message", json.dumps(image_data), room=request.sid)  # Emit as JSON string
+
+
+@socketio.on("message_updated")
+def handle_message_updated(updated_message, recipient_username):
+    recipient_sid = next(
+        (sid for sid, username in users.items() if username == recipient_username),
+        None,
+    )
+    if recipient_sid:
+        emit("update_message", updated_message, room=recipient_sid)
 
 
 @socketio.on("disconnect")
@@ -385,15 +398,17 @@ def message_add_get():
 @app.route("/messages/<int:id>", methods=["PATCH", "DELETE"])
 def message_edit_remove(id):
     message = Message.query.filter(Message.id == id).first()
+    print("SHOULD BE EDITED: ", message)
     if not message:
         return {}, 404
     elif request.method == "PATCH":
         data = request.json
+        print("PATCHING: ", data)
         try:
-            setattr(message, "previous_body", data["body"])
-            setattr(message, "modified_date", db.Func.now())
             for key in data:
-                setattr(message, key, data[key])
+                if key != "date" and key != "modified_date":
+                    setattr(message, key, data[key])
+
             db.session.commit()
             return (
                 message.to_dict(
@@ -517,4 +532,4 @@ def upload_file():
 if __name__ == "__main__":
     # app.run(port=5555, debug=True)
     # socketio.run(app, host="192.168.1.162", port=8080, debug=True)
-    socketio.run(app, port=8080, host="192.168.1.162", debug=True, log_output=True)
+    socketio.run(app, port=8080, host="10.129.3.117", debug=True, log_output=True)
