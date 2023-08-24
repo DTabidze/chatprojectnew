@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ContactList from "./ContactList";
 import ChatPanel from "./ChatPanel";
+import ProfilePage from "./ProfilePage"; // Make sure you have this component imported
 import io from "socket.io-client";
 import { useOutletContext } from "react-router-dom";
 import SERVER_BASE_URL from "./config";
@@ -9,11 +10,15 @@ function MainPanel() {
   const { loggedInUser, setLoggedInUser } = useOutletContext();
   const [myContacts, setMyContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
+  const [showProfilePage, setShowProfilePage] = useState(false); // State for showing profile modal
+
   function handleSelectedContact(contact) {
-    setSelectedContact((prevSelectedContact) => contact);
-    console.log("SELECTED CONTACT MAINPANEL: ", selectedContact);
+    setSelectedContact(contact);
   }
-  console.log("LOGGED IN USER MAINPANEL: ", loggedInUser);
+
+  function toggleProfileModal() {
+    setShowProfilePage(!showProfilePage);
+  }
 
   useEffect(() => {
     if (
@@ -36,11 +41,14 @@ function MainPanel() {
     <>
       {Object.keys(loggedInUser).length > 0 && (
         <div className="flex h-screen">
-          <div className="w-1/4 bg-gray-200">
-            <div className="flex min-w-0 gap-x-4">
+          <div className="w-1/4 max-w-25 bg-gray-200">
+            <div
+              className="flex min-w-0 gap-x-4 p-4 cursor-pointer"
+              onClick={toggleProfileModal}
+            >
               <img
                 className="h-12 w-12 flex-none rounded-full bg-gray-50"
-                // src={contact.imageUrl}
+                src={`${SERVER_BASE_URL}/static/${loggedInUser.profile_pic}`}
                 alt=""
               />
               <div className="min-w-0 flex-auto">
@@ -60,11 +68,19 @@ function MainPanel() {
               <ChatPanel
                 loggedInUser={loggedInUser}
                 selectedContact={selectedContact}
-                // socket={socket}
+                myContacts={myContacts}
+                setMyContacts={setMyContacts}
               />
             </div>
           )}
         </div>
+      )}
+      {showProfilePage && (
+        <ProfilePage
+          setLoggedInUser={setLoggedInUser}
+          loggedInUser={loggedInUser}
+          onClose={toggleProfileModal}
+        />
       )}
     </>
   );

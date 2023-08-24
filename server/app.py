@@ -517,4 +517,4 @@ def upload_file():
 if __name__ == "__main__":
     # app.run(port=5555, debug=True)
     # socketio.run(app, host="192.168.1.162", port=8080, debug=True)
-    socketio.run(app, port=8080, host="10.129.3.117", debug=True, log_output=True)
+    socketio.run(app, port=8080, host="192.168.1.162", debug=True, log_output=True)

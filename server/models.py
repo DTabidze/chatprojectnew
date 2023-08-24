@@ -17,6 +17,7 @@ class User(db.Model, SerializerMixin):
     email = db.Column(db.String, nullable=False)
     status = db.Column(db.String, default="offline", nullable=False)
     date = db.Column(db.DateTime, default=db.func.now())
+    profile_pic = db.Column(db.String, default="profile-picture-default.png")
 
     # RELATIONSHIPS
     # Establish relationship to Contact model (user_first)

@@ -96,7 +96,8 @@ const AddNewContact = () => {
       user_first: loggedInUser.id,
       user_second: id,
     };
-    fetch("http://10.129.3.117:8080/contacts", {
+    console.log(newContact);
+    fetch(`${SERVER_BASE_URL}/contacts`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -145,7 +146,7 @@ const AddNewContact = () => {
               <div className="flex items-center">
                 <img
                   className="h-12 w-12 flex-none rounded-full bg-gray-50"
-                  src={user.imageUrl}
+                  src={`${SERVER_BASE_URL}/static/${user.profile_pic}`}
                   alt=""
                 />
                 <div className="min-w-0 flex-auto">

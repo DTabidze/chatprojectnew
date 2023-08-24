@@ -4,13 +4,20 @@ import sendIcon from "../icons/icons8-send-96.png";
 import sendPic from "../icons/icons8-send-image-96.png";
 import SERVER_BASE_URL from "./config";
 import Picker from "emoji-picker-react";
+import UserProfilePage from "./UserProfilePage";
 
-function ChatPanel({ selectedContact, loggedInUser }) {
+function ChatPanel({
+  myContacts,
+  setMyContacts,
+  selectedContact,
+  loggedInUser,
+}) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const inputRef = useRef(null);
   const [socket, setSocket] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [showUserProfilePage, setUserShowProfilePage] = useState(false);
 
   const fetchChatHistory = async () => {
     if (!selectedContact) return;
@@ -46,7 +53,7 @@ function ChatPanel({ selectedContact, loggedInUser }) {
 
   useEffect(() => {
     // Create the socket connection once when the component mounts
-    const newSocket = io("10.129.3.117:8080");
+    const newSocket = io("192.168.1.162:8080");
     setSocket(newSocket);
 
     // Clean up the socket connection when the component unmounts
@@ -98,7 +105,7 @@ function ChatPanel({ selectedContact, loggedInUser }) {
   function handleInputText(e) {
     setNewMessage(e.target.value);
   }
-
+  // HANDLE SENDING MESSAGES
   const sendMessage = () => {
     if (newMessage.trim() === "" || selectedContact.username.trim() === "")
       return;
@@ -125,8 +132,17 @@ function ChatPanel({ selectedContact, loggedInUser }) {
     })
       .then((res) => {
         if (res.ok) {
-          socket.emit("message", JSON.stringify(messageObject));
+          // socket.emit("message", JSON.stringify(messageObject));
+          return res.json();
         }
+      })
+      .then((msg) => {
+        messageObject.id = msg.id;
+        console.log("MSG: ", msg);
+        console.log("MSG OBJ: ", messageObject);
+        socket.emit("message", JSON.stringify(messageObject));
+        setMessages((prevMessages) => [...prevMessages, msg]); // Append the message as an object
+        setNewMessage(""); // Clear the new message input
       })
       .catch((error) => {
         console.log(error);
@@ -134,9 +150,10 @@ function ChatPanel({ selectedContact, loggedInUser }) {
 
     // socket.emit("message", JSON.stringify(messageObject)); // Send the message as a JSON string
 
-    setMessages((prevMessages) => [...prevMessages, messageObject]); // Append the message as an object
-    setNewMessage(""); // Clear the new message input
+    console.log(messages);
   };
+
+  // HANDLE IMAGE SENDING
   const sendImage = async () => {
     const input = inputRef.current;
 
@@ -178,60 +195,70 @@ function ChatPanel({ selectedContact, loggedInUser }) {
           })
             .then((res) => {
               if (res.ok) {
-                socket.emit("message", JSON.stringify(messageObject));
+                // socket.emit("message", JSON.stringify(messageObject));
+                return res.json();
               }
+            })
+            .then((msg) => {
+              messageObject.id = msg.id;
+              console.log("MSG: ", msg);
+              console.log("MSG OBJ: ", messageObject);
+              socket.emit("message", JSON.stringify(messageObject));
+              setMessages((prevMessages) => [...prevMessages, msg]); // Append the message as an object
+              setNewMessage(""); // Clear the new message input
             })
             .catch((error) => {
               console.log(error);
             });
-
-          // socket.emit("message", JSON.stringify(messageObject));
-          setMessages((prevMessages) => [...prevMessages, messageObject]);
-          console.log("Uploaded filename:", data.filename);
         } else {
           console.error("Failed to upload file:", response.statusText);
         }
       } catch (error) {
         console.error("Error uploading file:", error);
       }
-
-      // setNewMessage("");
     }
   };
-  // const sendImage = () => {
-
-  //   // const input = inputRef.current;
-
-  //   // if (input && input.files && input.files.length > 0) {
-  //   //   const file = input.files[0];
-  //   //   const reader = new FileReader();
-
-  //   //   reader.onload = (event) => {
-  //   //     const imageBase64 = event.target.result;
-  //   //     const messageObject = {
-  //   //       image: imageBase64,
-  //   //       timestamp: new Date().getTime(),
-  //   //       isMe: true,
-  //   //       recipient: selectedContact.username,
-  //   //     };
-  //   //     socket.send(JSON.stringify(messageObject));
-  //   //     setMessages((prevMessages) => [...prevMessages, messageObject]);
-  //   //   };
-
-  //   //   reader.readAsDataURL(file);
-  //   //   setNewMessage("");
-  //   // }
-  // };
-
+  // ADD EMOJI IN INPUT
   const onEmojiClick = (emojiObject) => {
     setNewMessage((prevNewMessage) => prevNewMessage + emojiObject.emoji);
     setShowPicker(false);
   };
+
+  function toggleUserProfileModal() {
+    setUserShowProfilePage(!showUserProfilePage);
+  }
+
   return (
     <div className="flex flex-col h-full">
-      <h2 className="text-lg font-semibold mb-4">
+      {showUserProfilePage && (
+        <UserProfilePage
+          // setLoggedInUser={setLoggedInUser}
+          selectedContact={selectedContact}
+          loggedInUser={loggedInUser}
+          myContacts={myContacts}
+          setMyContacts={setMyContacts}
+          onClose={toggleUserProfileModal}
+        />
+      )}
+      {/* <h1 className="text-lg font-semibold mb-4">
         {selectedContact.fname + " " + selectedContact.lname}
-      </h2>
+      </h1>
+      <button>Delete</button> */}
+      <div
+        className="flex min-w-0 gap-x-4 p-4 cursor-pointer ml-auto items-center" // Add items-center class
+        onClick={toggleUserProfileModal}
+      >
+        <div className="min-w-0 flex-auto">
+          <p className="text-sm font-semibold leading-6 text-gray-900">
+            {selectedContact.fname + " " + selectedContact.lname}
+          </p>
+        </div>
+        <img
+          className="h-12 w-12 flex-none rounded-full bg-gray-50"
+          src={`${SERVER_BASE_URL}/static/${selectedContact.profile_pic}`}
+          alt=""
+        />
+      </div>
       <div className="flex-grow overflow-y-auto mb-4">
         {messages.map((message, index) => (
           <div
@@ -259,7 +286,6 @@ function ChatPanel({ selectedContact, loggedInUser }) {
                   style={{
                     maxWidth: "100%",
                     maxHeight: "300px",
-                    // Add alignment here
                     alignSelf:
                       message.sender === loggedInUser.username ||
                       message.sender === loggedInUser.id
@@ -300,8 +326,14 @@ function ChatPanel({ selectedContact, loggedInUser }) {
           src="https://icons.getbootstrap.com/assets/icons/emoji-smile.svg"
           onClick={() => setShowPicker((val) => !val)}
         />
+
         {showPicker && (
-          <Picker pickerStyle={{ width: "100%" }} onEmojiClick={onEmojiClick} />
+          <div className="absolute bottom-12 right-0">
+            <Picker
+              pickerStyle={{ width: "100%" }}
+              onEmojiClick={onEmojiClick}
+            />
+          </div>
         )}
         <button onClick={() => inputRef.current.click()}>
           <img src={sendPic} alt="Choose" className="w-6 h-6" />
@@ -316,42 +348,3 @@ function ChatPanel({ selectedContact, loggedInUser }) {
 }
 
 export default ChatPanel;
-
-/* <div className="p-4">
-{selectedContact ? (
-  <div>
-    <h2 className="text-lg font-semibold mb-4">{selectedContact.name}</h2>
-    <div className="flex flex-col h-96 overflow-y-auto mb-4">
-      {messages.map((message, index) => (
-        <div
-          key={index}
-          className={`p-2 rounded ${
-            message.isMe
-              ? "bg-blue-300 self-end"
-              : "bg-gray-300 self-start"
-          }`}
-        >
-          {message.text}
-        </div>
-      ))}
-    </div>
-    <form className="flex items-center" onSubmit={handleSendMessage}>
-      <input
-        type="text"
-        className="flex-1 p-2 border rounded"
-        placeholder="Type a message..."
-        value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
-      />
-      <button
-        type="submit"
-        className="bg-blue-500 text-white p-2 rounded ml-2"
-      >
-        Send
-      </button>
-    </form>
-  </div>
-) : (
-  <p>Select a contact to start chatting.</p>
-)}
-</div> */

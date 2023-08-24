@@ -26,4 +26,4 @@ server/.venv
 server/__pycache__
 server/migrations
 server/secret_keys.py
-server/static
+server/static/
