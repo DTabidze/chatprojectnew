@@ -126,22 +126,19 @@ function ChatPanel({
   function handleInputText(e) {
     setNewMessage(e.target.value);
   }
-  // HANDLE SENDING MESSAGES
-  const sendMessage = () => {
-    if (newMessage.trim() === "" || selectedContact.username.trim() === "")
-      return;
-    console.log("MESSAGE TEXT: ", newMessage);
-    const messageObject = {
-      text: newMessage,
-      recipient: selectedContact.username, //Add Reciver information
-      sender: loggedInUser.username, // Add sender information
-      message_type: "text",
-    };
+
+  const handleChatSend = (text, message_type, e) => {
     const dbMessageObject = {
-      text: newMessage,
+      text: text,
       recipient: selectedContact.id, //Add Reciver information
       sender: loggedInUser.id, // Add sender information
-      message_type: "text",
+      message_type: message_type,
+    };
+    const messageObject = {
+      text: text,
+      recipient: selectedContact.username, //Add Reciver information
+      sender: loggedInUser.username, // Add sender information
+      message_type: message_type,
     };
     fetch(`${SERVER_BASE_URL}/messages`, {
       method: "POST",
@@ -165,10 +162,19 @@ function ChatPanel({
         socket.emit("message", JSON.stringify(messageObject));
         setMessages((prevMessages) => [...prevMessages, msg]); // Append the message as an object
         setNewMessage(""); // Clear the new message input
+        e.target.value = null;
       })
       .catch((error) => {
         console.log(error);
       });
+  };
+
+  // HANDLE SENDING MESSAGES
+  const sendMessage = (e) => {
+    if (newMessage.trim() === "" || selectedContact.username.trim() === "")
+      return;
+    console.log("MESSAGE TEXT: ", newMessage);
+    handleChatSend(newMessage, "text", e);
 
     // socket.emit("message", JSON.stringify(messageObject)); // Send the message as a JSON string
 
@@ -184,63 +190,26 @@ function ChatPanel({
       const formData = new FormData();
       formData.append("file", file);
 
+      let response;
+
       try {
-        const response = await fetch(`${SERVER_BASE_URL}/uploadimage`, {
+        response = await fetch(`${SERVER_BASE_URL}/uploadimage`, {
           method: "POST",
           credentials: "include",
           body: formData,
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          const dbMessageObject = {
-            text: data.filename, // Set the filename as the image URL
-            // timestamp: new Date().getTime(),
-            recipient: selectedContact.id,
-            sender: loggedInUser.id,
-            message_type: "image", // Set the message type as "image"
-          };
-          const messageObject = {
-            text: data.filename, // Set the filename as the image URL
-            // timestamp: new Date().getTime(),
-            recipient: selectedContact.username,
-            sender: loggedInUser.username,
-            message_type: "image", // Set the message type as "image"
-          };
-          fetch(`${SERVER_BASE_URL}/messages`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-type": "application/json",
-            },
-            body: JSON.stringify(dbMessageObject),
-          })
-            .then((res) => {
-              if (res.ok) {
-                // socket.emit("message", JSON.stringify(messageObject));
-                return res.json();
-              }
-            })
-            .then((msg) => {
-              messageObject.id = msg.id;
-
-              messageObject.date = msg.date;
-              console.log("MSG: ", msg);
-              console.log("MSG OBJ: ", messageObject);
-              socket.emit("message", JSON.stringify(messageObject));
-              setMessages((prevMessages) => [...prevMessages, msg]); // Append the message as an object
-              setNewMessage(""); // Clear the new message input
-              e.target.value = null;
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        } else {
-          console.error("Failed to upload file:", response.statusText);
-        }
       } catch (error) {
         console.error("Error uploading file:", error);
+        return;
       }
+
+      if (!response.ok) {
+        console.error("Failed to upload file:", response.statusText);
+        return;
+      }
+
+      const data = await response.json();
+      handleChatSend(data.filename, "image", e);
     }
   };
   // ADD EMOJI IN INPUT
