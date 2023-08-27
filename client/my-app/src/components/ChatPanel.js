@@ -11,11 +11,11 @@ function ChatPanel({
   setMyContacts,
   selectedContact,
   loggedInUser,
+  socket,
 }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const inputRef = useRef(null);
-  const [socket, setSocket] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showUserProfilePage, setUserShowProfilePage] = useState(false);
   const [editedMessages, setEditedMessages] = useState({});
@@ -56,21 +56,10 @@ function ChatPanel({
     fetchChatHistory();
   }, [selectedContact]);
 
-  useEffect(() => {
-    // Create the socket connection once when the component mounts
-    const newSocket = io("10.129.3.117:8080");
-    setSocket(newSocket);
-
-    // Clean up the socket connection when the component unmounts
-    return () => {
-      newSocket.disconnect();
-    };
-  }, []);
-
+  // message and message_update socket listeners
   useEffect(() => {
     if (!socket) return;
-    socket.removeAllListeners();
-    socket.on("message", (message) => {
+    const message_listener = (message) => {
       try {
         const parsedMessage = JSON.parse(message);
         console.log(
@@ -94,23 +83,21 @@ function ChatPanel({
       } catch (error) {
         console.error("Error parsing JSON:", error);
       }
-    });
-    socket.on("connect", () => {
-      const username = loggedInUser.username;
-      console.log("USER LOGGED IN HANDLE: ", username);
-      socket.emit("login", { username });
-    });
-    socket.on("update_message", (updatedMessage) => {
+    };
+    socket.on("message", message_listener);
+
+    const update_message_listener = (updatedMessage) => {
       // Update the messages state to replace the existing message with the updated message
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === updatedMessage.id ? updatedMessage : msg
         )
       );
-    });
+    };
+    socket.on("update_message", update_message_listener);
     return () => {
-      socket.removeAllListeners("message");
-      socket.off("connect");
+      socket.off("message", message_listener);
+      socket.off("update_message", update_message_listener);
     };
   }, [socket, loggedInUser, selectedContact]);
 

@@ -12,7 +12,7 @@ client/my-app/.pnp.js
 client/my-app/build
 
 # misc
-client/my-app/.DS_Store
+.DS_Store
 client/my-app/.env.local
 client/my-app/.env.development.local
 client/my-app/.env.test.local

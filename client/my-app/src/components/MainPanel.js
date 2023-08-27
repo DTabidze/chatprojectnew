@@ -12,6 +12,8 @@ function MainPanel() {
   const [selectedContact, setSelectedContact] = useState(null);
   const [showProfilePage, setShowProfilePage] = useState(false); // State for showing profile modal
   const navigate = useNavigate();
+  const [socket, setSocket] = useState(null);
+
   function handleSelectedContact(contact) {
     setSelectedContact(contact);
   }
@@ -53,6 +55,34 @@ function MainPanel() {
     }
   }, [loggedInUser]);
 
+  useEffect(() => {
+    // Create the socket connection once when the component mounts
+    const newSocket = io("10.1.50.53:8080");
+    setSocket(newSocket);
+
+    // Clean up the socket connection when the component unmounts
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    // Socket connection listener , automatically log in every time u socket connects.
+    const connect_listener = () => {
+      const username = loggedInUser.username;
+      console.log("USER LOGGED IN HANDLE: ", username);
+      socket.emit("login", { username });
+    };
+    socket.on("connect", connect_listener);
+
+    return () => {
+      if (!socket) return;
+      // if socket or user changes this runs before useEffect takes effect again and kills this connection.
+      socket.off("connect", connect_listener);
+    };
+  }, [socket, loggedInUser]);
+
   return (
     <>
       {Object.keys(loggedInUser).length > 0 && (
@@ -89,6 +119,7 @@ function MainPanel() {
                 selectedContact={selectedContact}
                 myContacts={myContacts}
                 setMyContacts={setMyContacts}
+                socket={socket}
               />
             </div>
           )}
