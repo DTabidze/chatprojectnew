@@ -496,7 +496,7 @@ def contact_delete(id):
         return {"message": "contact deleted"}, 200
 
 
-# UPLOAD FILE
+# UPLOAD IMAGE FILE
 
 
 def allowed_file(filename):
@@ -527,6 +527,40 @@ def upload_file():
             # return redirect(url_for("uploaded_file", filename=unique_filename))
             return {"filename": unique_filename}
     return {}
+
+
+# UPLOAD AUDIO
+
+
+# def allowed_file(filename):
+#     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# @app.route("/uploadaudio", methods=["POST"])
+# def upload_audio():
+#     if request.method == "POST":
+#         print(request.files)
+#         # check if the post request has the file part
+#         if "file" not in request.files:
+#             flash("No file part")
+#             return {"error": "No file part"}
+#         file = request.files["file"]
+#         print(file)
+#         # if user does not select file, browser also
+#         # submit an empty part without filename
+#         if file.filename == "":
+#             flash("No selected file")
+#             return {"error": "No selected file"}
+#         if file and allowed_file(file.filename):
+#             # Generate a unique filename using UUID
+#             unique_filename = str(uuid.uuid4()) + "_" + secure_filename(file.filename)
+#             print(unique_filename)
+#             file.save(os.path.join(UPLOAD_FOLDER, unique_filename))
+#             print("DONE")
+#             return {"filename": unique_filename}
+#         else:
+#             return {"error": "Invalid file format"}
+#     return {"error": "Invalid request method"}
 
 
 if __name__ == "__main__":

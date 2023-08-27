@@ -113,7 +113,7 @@ function MainPanel() {
             />
           </div>
           {selectedContact !== null && (
-            <div className="flex-1 bg-gray-100">
+            <div className="flex-1 bg-gray-100 overflow-hidden">
               <ChatPanel
                 loggedInUser={loggedInUser}
                 selectedContact={selectedContact}
