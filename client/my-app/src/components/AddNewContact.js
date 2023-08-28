@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import SERVER_BASE_URL from "./config";
 const AddNewContact = () => {
-  const { loggedInUser, refreshUser } = useOutletContext();
+  const { loggedInUser, setLoggedInUser, refreshUser } = useOutletContext();
   const [users, setUsers] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -10,6 +10,7 @@ const AddNewContact = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log(loggedInUser);
     async function fetchAllUsers() {
       try {
         const response = await fetch(`${SERVER_BASE_URL}/users`, {
@@ -91,12 +92,13 @@ const AddNewContact = () => {
     setFilteredUsers(filtered);
   };
 
-  function handleAddContact(id) {
+  function handleAddContact(user) {
     const newContact = {
       user_first: loggedInUser.id,
-      user_second: id,
+      user_second: user.id,
     };
     console.log(newContact);
+    console.log("ADDED NEW CONTACT: ", user);
     fetch(`${SERVER_BASE_URL}/contacts`, {
       method: "POST",
       credentials: "include",
@@ -108,6 +110,12 @@ const AddNewContact = () => {
       .then((res) => {
         if (res.ok) {
           res.json();
+          // refreshUser();
+          // setLoggedInUser((prevUser) => ({
+          //   ...prevUser,
+          //   contacts: [...prevUser.contacts_sent, newContact], // Assuming contacts is an array
+          // }));
+          // console.log(loggedInUser);
           // refreshUser();
           navigate("/mainpanel");
         }
@@ -159,7 +167,7 @@ const AddNewContact = () => {
                 </div>
               </div>
               <button
-                onClick={() => handleAddContact(user.id)}
+                onClick={() => handleAddContact(user)}
                 className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               >
                 Add Contact

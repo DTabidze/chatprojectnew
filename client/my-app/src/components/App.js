@@ -18,6 +18,7 @@ function App() {
         console.log("LOGGED IN USER: ", user);
         if (user) {
           setLoggedInUser(user);
+          console.log("APP USER", loggedInUser);
           navigate("/mainpanel");
         } else {
           navigate("/error");

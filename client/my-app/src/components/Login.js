@@ -38,6 +38,15 @@ export default function Login() {
       if (response.ok) {
         const user = await response.json();
         console.log("FETCHED USER RESPONSE: ", user);
+        fetch(`${SERVER_BASE_URL}/users/${user.id}`, {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "online" }),
+        });
+        user.status = "online";
         setLoggedInUser(user);
         navigate("/mainpanel");
       } else {

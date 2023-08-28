@@ -18,13 +18,13 @@ function ContactList({ loggedInUser, myContacts, handleSelectedContact }) {
         Contact List
         {/* <SVGIcon className="ml-2 cursor-pointer inline-block" /> */}
       </h2>
-      <Link
+      {/* <Link
         to="/addnewcontact"
         type="button"
         className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
       >
         Add Contact
-      </Link>
+      </Link> */}
 
       <Card className="w-90">
         <List>

@@ -59,6 +59,34 @@ def handle_login(data):
     print("SOCKET USERS: ", users)
 
 
+@socketio.on("user_status_change")
+def handle_user_status_change(data):
+    print("ONLINE STATUS CHANGE: ", data)
+    print(users, " LOGGED IN USERS")
+    recipient_sid = next(
+        (sid for sid, username in users.items() if username == data["userId"]),
+        None,
+    )
+    print("CHECK IF EMIT HAPPENDS: ", recipient_sid)
+    if recipient_sid:
+        print(data, " CHECK IF IT COMES INSIDE CONDITIONAL")
+        emit("user_status_change", data, room=recipient_sid)
+
+
+@socketio.on("contact_added")
+def handle_added_contact(data):
+    destination_user = data["destinationUser"]
+    contact_to_add = data["contactToAdd"]
+    recipient_sid = next(
+        (sid for sid, username in users.items() if username == destination_user),
+        None,
+    )
+    if recipient_sid:
+        print("CONTACT TO ADD: ", contact_to_add)
+        print("DESTINATION USER: ", destination_user)
+        emit("contact_added", contact_to_add, room=recipient_sid)
+
+
 @socketio.on("message")
 def handle_message(message):
     print("MESSAGE SOCKET: ", str(message)[:100])
@@ -118,6 +146,7 @@ def handle_message_updated(updated_message, recipient_username):
 @socketio.on("disconnect")
 def handle_disconnect():
     username = users.get(request.sid)
+    print(users, " LOGGING OFF")
     if username:
         del users[request.sid]
         print(f"SOCKET User {username} disconnected")
@@ -566,4 +595,4 @@ def upload_file():
 if __name__ == "__main__":
     # app.run(port=5555, debug=True)
     # socketio.run(app, host="192.168.1.162", port=8080, debug=True)
-    socketio.run(app, port=8080, host="10.1.50.53", debug=True, log_output=True)
+    socketio.run(app, port=8080, host="10.129.3.117", debug=True, log_output=True)
