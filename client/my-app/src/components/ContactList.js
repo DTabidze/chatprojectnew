@@ -13,11 +13,7 @@ function ContactList({ loggedInUser, myContacts, handleSelectedContact }) {
   console.log("MYCONTACTS CHECK: ", myContacts);
 
   return (
-    <div className="flex-grow overflow-y-hidden">
-      <h2 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
-        Contact List
-        {/* <SVGIcon className="ml-2 cursor-pointer inline-block" /> */}
-      </h2>
+    <div className="flex-grow overflow-y-auto h-full border border-blue-500 rounded-lg p-0">
       {/* <Link
         to="/addnewcontact"
         type="button"
@@ -26,12 +22,13 @@ function ContactList({ loggedInUser, myContacts, handleSelectedContact }) {
         Add Contact
       </Link> */}
 
-      <Card className="w-90">
-        <List>
+      <Card className="w-90 min-h-[92vh] max-h-[92vh]">
+        <List className="p-1 pb-0">
           {myContacts && myContacts.length > 0 ? (
             myContacts.map((contact) => (
               <Contact
                 key={contact.username}
+                className="bg-white hover:bg-gray-100"
                 contact={contact}
                 handleSelectedContact={handleSelectedContact}
               />

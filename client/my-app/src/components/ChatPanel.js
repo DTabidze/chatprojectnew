@@ -313,7 +313,7 @@ function ChatPanel({
         />
       )}
       <div
-        className="flex min-w-0 gap-x-4 p-2 cursor-pointer ml-auto items-center" // Add items-center class
+        className="flex min-w-0 h-12 gap-x-4 p-2 cursor-pointer ml-auto items-center"
         onClick={toggleUserProfileModal}
       >
         <div className="min-w-0 flex-auto">
@@ -330,11 +330,7 @@ function ChatPanel({
       <div>
         <label className="relative block p-2">
           <span className="sr-only">Search</span>
-          <span className="absolute inset-y-0 left-0 flex items-center pl-2">
-            <svg className="h-5 w-5 fill-slate-300" viewBox="0 0 20 20">
-              whatever
-            </svg>
-          </span>
+          <span className="absolute inset-y-0 left-0 flex items-center pl-2"></span>
           <input
             className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
             placeholder="Search Messages..."
@@ -383,7 +379,7 @@ function ChatPanel({
                 style={{
                   maxWidth: "48%",
                   wordWrap: "break-word",
-                  marginTop: "33px",
+                  marginTop: "1px",
                   // marginTop: showDateSeparator ? "33px" : "0",
                 }}
               >
@@ -415,9 +411,9 @@ function ChatPanel({
                     </button>
                   </div>
                 ) : (
-                  <div className="relative w-100 p-1 pb-2">
+                  <div className="relative w-100 p-1 pb-3">
                     {message.message_type === "text" ? (
-                      <p>{message.text}</p>
+                      <p className="min-w-[40px]"> {message.text}</p>
                     ) : (
                       <img
                         src={`${SERVER_BASE_URL}/static/${message.text}`}
@@ -433,10 +429,26 @@ function ChatPanel({
                         }}
                       />
                     )}
-                    <span className="absolute right-2 bottom-0 text-[11px]">
-                      {message.modified_date
-                        ? message.modified_date.slice(11, 16)
-                        : message.date.slice(11, 16)}
+                    <span className="absolute bottom-0 right-0 text-[11px] pt-2">
+                      {message.modified_date || message.date
+                        ? (() => {
+                            const utcTimeString =
+                              message.modified_date || message.date;
+                            const utcTime = new Date(utcTimeString);
+                            const localTime = new Date(
+                              utcTime.getTime() -
+                                utcTime.getTimezoneOffset() * 60000
+                            );
+                            const localTimeString =
+                              localTime.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                              });
+
+                            return localTimeString;
+                          })()
+                        : null}
                     </span>
                     {message.sender === loggedInUser.username ||
                     message.sender === loggedInUser.id ? (

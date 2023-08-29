@@ -101,7 +101,7 @@ export default function ProfilePage({
                 <img
                   src={`${SERVER_BASE_URL}/static/${loggedInUser.profile_pic}`}
                   alt="Profile"
-                  className="object-cover w-full h-full"
+                  className=" w-full h-full"
                 />
               )}
             </CardHeader>

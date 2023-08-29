@@ -33,17 +33,26 @@ export default function Register() {
     })
       .then((res) => {
         if (res.ok) {
-          alert("Succesfull Registration!");
+          alert("Successful Registration!");
           console.log(res, "   REGISTERED USER");
-          console.log(res.json());
-          navigate("/login");
+          return res.json();
         } else {
-          throw new Error("Registration failed");
+          return res.json().then((errorData) => {
+            const errorMessages = errorData.error[0];
+            if (errorMessages.includes("UNIQUE constraint failed")) {
+              alert("Error: Username already exists.");
+            } else {
+              alert("Error: " + errorMessages);
+            }
+          });
         }
       })
-
+      .then((data) => {
+        console.log(data);
+        navigate("/");
+      })
       .catch((error) => {
-        // Handle any errors that occur during the fetch
+        console.log("SOMETHING WENT WRONG: ", error);
       });
   }
   return (

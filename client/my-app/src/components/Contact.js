@@ -8,7 +8,7 @@ import {
 const Contact = ({ contact, handleSelectedContact }) => {
   return (
     <div onClick={() => handleSelectedContact(contact)}>
-      <ListItem>
+      <ListItem className="p-1 rounded-lg">
         <ListItemPrefix>
           <Avatar
             variant="circular"

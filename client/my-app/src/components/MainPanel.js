@@ -65,10 +65,14 @@ function MainPanel() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ status: "offline" }),
-        });
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+            navigate("/login");
+          });
 
         // setLoggedInUser({});
-        navigate("/login");
       }
     });
   }
@@ -127,21 +131,10 @@ function MainPanel() {
 
     const userStatusChangeHandler = (data) => {
       const { userId, sender, status } = data;
-      console.log(status, "CHECK FRONT END");
-      // Find the contact that matches the sender's username
-      const contactToUpdate = myContacts.find(
-        (contact) => contact.username === sender
-      );
-      console.log(sender);
-      console.log("FUNCTION SCOPE CHEC!!!!!!K: ", myContacts);
-      console.log(contactToUpdate.status, "    ", status);
-      console.log("before update check: ", myContacts);
-      // Only update if the contact exists and the status has changed
-      // if (contactToUpdate && contactToUpdate.status !== status) {
+
       setMyContacts((prevContacts) => {
         const updatedContacts = prevContacts.map((contact) => {
           if (contact.username === sender) {
-            console.log(contact, " UPDATE THIS");
             return { ...contact, status: status };
           }
           return contact;
@@ -159,16 +152,22 @@ function MainPanel() {
 
         return updatedContacts;
       });
-      // }
-      console.log("status update check: ", myContacts);
     };
 
     handleStatusChange("online");
 
     const handleContactAdded = (newContact) => {
-      // Update the recipient's contact list to include the new contact
-      console.log("NEW CONTACT!!!!:   ", newContact);
-      setMyContacts((prevContacts) => [...prevContacts, newContact]);
+      const sortedContacts = [...myContacts, newContact].sort((a, b) => {
+        if (a.status === "online" && b.status !== "online") {
+          return -1;
+        } else if (a.status !== "online" && b.status === "online") {
+          return 1;
+        }
+        return 0;
+      });
+
+      setMyContacts(sortedContacts);
+      // setMyContacts((prevContacts) => [...prevContacts, newContact]);
     };
 
     socket.on("contact_added", handleContactAdded);
@@ -189,32 +188,50 @@ function MainPanel() {
     <>
       {Object.keys(loggedInUser).length > 0 && (
         <div className="flex h-screen">
-          <div className="w-1/4 max-w-25 bg-gray-200">
-            <div
-              className="flex min-w-0 gap-x-4 p-4 cursor-pointer"
-              onClick={toggleProfileModal}
-            >
-              <img
-                className="h-12 w-12 flex-none rounded-full bg-gray-50"
-                src={`${SERVER_BASE_URL}/static/${loggedInUser.profile_pic}`}
-                alt=""
-              />
-              <div className="min-w-0 flex-auto">
-                <p className="text-sm font-semibold leading-6 text-gray-900">
-                  {loggedInUser.fname + " " + loggedInUser.lname}
-                </p>
-                <div className="text-gray-500">
-                  <button onClick={handleLogOut}>Log Out</button>
+          <div className="w-1/4 max-w-25 bg-gray-200 overflow-hidden">
+            <div className="p-1 cursor-pointer">
+              <div className="flex gap-x-4 items-center">
+                <img
+                  onClick={toggleProfileModal}
+                  className="h-12 w-12 rounded-full bg-gray-50"
+                  src={`${SERVER_BASE_URL}/static/${loggedInUser.profile_pic}`}
+                  alt=""
+                />
+                <div className="min-w-0 flex-auto">
+                  <p className="text-sm font-semibold leading-6 text-gray-900">
+                    {loggedInUser.fname + " " + loggedInUser.lname}
+                  </p>
+                  <div className="text-gray-500">
+                    <button onClick={handleLogOut}>Log Out</button>
+                  </div>
                 </div>
+                <svg
+                  className="h-8 w-8 text-blue-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  onClick={handleAddContactClick}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                  />
+                </svg>
+
+                {/* <button
+                  type="button"
+                  className=" text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  onClick={handleAddContactClick}
+                >
+                  +
+                </button> */}
               </div>
             </div>
-            <button
-              type="button"
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              onClick={handleAddContactClick}
-            >
-              Add Contact
-            </button>
+            {/* <h2 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl mt-4">
+              Contact List
+            </h2> */}
             {showNewContact && (
               <NewContact
                 loggedInUser={loggedInUser}
@@ -224,11 +241,13 @@ function MainPanel() {
                 socket={socket}
               />
             )}
-            <ContactList
-              loggedInUser={loggedInUser}
-              myContacts={myContacts}
-              handleSelectedContact={handleSelectedContact}
-            />
+            <div>
+              <ContactList
+                loggedInUser={loggedInUser}
+                myContacts={myContacts}
+                handleSelectedContact={handleSelectedContact}
+              />
+            </div>
           </div>
           {selectedContact !== null && (
             <div className="flex-1 bg-gray-100 overflow-hidden">

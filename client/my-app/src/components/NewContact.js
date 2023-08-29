@@ -135,10 +135,25 @@ const NewContact = ({
           };
           // Emit a socket event to notify the other user
           socket.emit("contact_added", emitObject);
-          setMyContacts((prevContacts) => [
-            ...prevContacts,
-            userWithoutContacts,
-          ]);
+
+          //sort online contacts first
+          const sortedContacts = [...myContacts, userWithoutContacts].sort(
+            (a, b) => {
+              if (a.status === "online" && b.status !== "online") {
+                return -1;
+              } else if (a.status !== "online" && b.status === "online") {
+                return 1;
+              }
+              return 0;
+            }
+          );
+
+          setMyContacts(sortedContacts);
+
+          // setMyContacts((prevContacts) => [
+          //   ...prevContacts,
+          //   userWithoutContacts,
+          // ]);
 
           setShowNewContact(false);
         }
@@ -165,19 +180,14 @@ const NewContact = ({
   return (
     <>
       <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-        <div className="relative w-auto my-6 mx-auto max-w-3xl">
+        <div className="relative" style={{ width: "350px" }}>
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-            <div className="flex flex-col items-center mt-8">
-              <div className="mb-4">
+            <div className="flex flex-col items-center mt-1">
+              <div className="mb-1">
                 <label className="relative block">
                   <span className="sr-only">Search</span>
-                  {/* <span className="absolute inset-y-0 left-0 flex items-center pl-2">
-                    <svg className="h-5 w-5 fill-slate-300" viewBox="0 0 20 20">
-                      whatever
-                    </svg>
-                  </span> */}
                   <input
-                    className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+                    className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-2 pr-2 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
                     placeholder="Search for New Contact..."
                     type="text"
                     name="search"
@@ -187,11 +197,11 @@ const NewContact = ({
                 </label>
               </div>
               <div className="relative w-full">
-                <ul className="absolute w-full bg-white border border-slate-300 rounded-md shadow-sm">
+                <ul className="absolute w-full bg-white border border-slate-300 rounded-md shadow-sm pr-1 pl-1">
                   {filteredUsers.map((user) => (
                     <li
                       key={user.id}
-                      className="flex justify-between gap-x-6 py-5 items-center border-b border-slate-300 last:border-b-0"
+                      className="flex justify-between gap-x-6 py-2 items-center border-b border-slate-300 last:border-b-0 hover:bg-gray-100"
                     >
                       <div className="flex items-center">
                         <img
@@ -208,12 +218,25 @@ const NewContact = ({
                           </p>
                         </div>
                       </div>
-                      <button
+                      {/* <button
                         onClick={() => handleAddContact(user)}
-                        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 inline-flex items-center"
                       >
-                        Add Contact
-                      </button>
+                        Add
+                      </button> */}
+                      <svg
+                        class="h-8 w-8 text-green-500"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        onClick={() => handleAddContact(user)}
+                      >
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />{" "}
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                      </svg>
                     </li>
                   ))}
                 </ul>
@@ -221,7 +244,7 @@ const NewContact = ({
             </div>
             <button
               onClick={handleClose}
-              className="text-white bg-gray-400 hover:bg-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 ml-4"
+              className="text-white bg-gray-400 hover:bg-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 inline-flex items-center w-auto"
             >
               Close
             </button>

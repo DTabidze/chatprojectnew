@@ -5,6 +5,7 @@ from sqlalchemy.orm import validates
 from sqlalchemy import DateTime
 import re
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import validates
 
 
 class User(db.Model, SerializerMixin):
@@ -63,6 +64,14 @@ class User(db.Model, SerializerMixin):
         "-sent_messages",
         "-recieved_massages",
     )
+
+    @validates("fname", "lname")
+    def validate_alphabetic(self, key, value):
+        if not value.isalpha():
+            raise ValueError(
+                f"{key.capitalize()} must contain only alphabetic characters."
+            )
+        return value
 
     @hybrid_property
     def password_hash(self):

@@ -12,8 +12,9 @@ export default function UserProfilePage({
   console.log(myContacts);
 
   function handleDeleteContact() {
-    console.log(selectedContact);
-    console.log(loggedInUser);
+    // console.log(selectedContact);
+    // console.log(myContacts)
+    // console.log(loggedInUser);
     let matchingContactId = null;
 
     for (let i = 0; i < loggedInUser.contacts_received.length; i++) {
@@ -74,25 +75,10 @@ export default function UserProfilePage({
         <div className="relative w-auto my-6 mx-auto max-w-3xl">
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             <CardHeader color="blue-gray" className="relative h-56">
-              <label
-                htmlFor="profileImage"
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-1 bg-blue-500 border-0 text-white opacity-5 text-3xl leading-none font-semibold outline-none focus:outline-none cursor-pointer"
-              >
-                <span className="bg-transparent text-white opacity-5 h-6 w-6 text-2xl block outline-none focus:outline-none">
-                  📸
-                </span>
-                <input
-                  type="file"
-                  id="profileImage"
-                  accept="image/*"
-                  className="hidden"
-                />
-              </label>
-
               <img
                 src={`${SERVER_BASE_URL}/static/${selectedContact.profile_pic}`}
                 alt="Profile"
-                className="object-cover w-full h-full"
+                className="w-full h-full"
               />
             </CardHeader>
             <div className="relative p-6 flex-auto">
