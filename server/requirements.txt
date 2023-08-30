@@ -1,0 +1,10 @@
+Flask==2.1.4
+Flask-SocketIO==5.1.1
+Flask-CORS==3.1.1
+Flask-Bcrypt==1.0.2
+Flask-SQLAlchemy==3.1.0
+Flask-Migrate==3.1.0
+sqlalchemy-serializer==1.5.0
+SQLAlchemy==1.4.25
+Werkzeug==2.0.1
+eventlet==0.31.1

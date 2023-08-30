@@ -1,20 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import io from "socket.io-client";
 import sendIcon from "../icons/icons8-send-96.png";
 import emojiIcon from "../icons/card-image.svg";
-import sendPic from "../icons/icons8-send-image-96.png";
 import SERVER_BASE_URL from "./config";
 import Picker from "emoji-picker-react";
 import UserProfilePage from "./UserProfilePage";
-import { AudioRecorder } from "react-audio-voice-recorder";
 import {
   Menu,
   MenuHandler,
   MenuList,
   MenuItem,
   Button,
-  Textarea,
-  IconButton,
 } from "@material-tailwind/react";
 
 function ChatPanel({
@@ -161,7 +156,7 @@ function ChatPanel({
         console.log("MSG OBJ: ", messageObject);
         socket.emit("message", JSON.stringify(messageObject));
         setMessages((prevMessages) => [...prevMessages, msg]); // Append the message as an object
-        setNewMessage(""); // Clear the new message input
+        setNewMessage("");
         e.target.value = null;
       })
       .catch((error) => {
@@ -221,11 +216,11 @@ function ChatPanel({
   function toggleUserProfileModal() {
     setUserShowProfilePage(!showUserProfilePage);
   }
-  // HANDLE DELETING MESSAGE
-  async function handleDeleteMessage(e, message, editedText) {
+  // HANDLE DELETING MESSAGE OR EDITING MESSAGE DEPENDS ON action
+  async function handleDeleteMessage(e, message, editedText, action) {
     console.log(message.text);
     message.previous_body = message.text;
-    if (e.target.name === "saveButton") {
+    if (action === "saveButton") {
       if (editedText.length === 0) {
         return;
       }
@@ -379,19 +374,43 @@ function ChatPanel({
                 style={{
                   maxWidth: "48%",
                   wordWrap: "break-word",
-                  marginTop: "1px",
+                  // marginTop: "px",
                   // marginTop: showDateSeparator ? "33px" : "0",
                 }}
               >
                 {editedMessageId === message.id ? (
-                  <div>
+                  <div className="flex items-center flex-col md:flex-row">
                     <input
+                      className="m-1 pl-1 w-full md:w-auto"
                       type="text"
                       style={{ color: "black" }}
                       value={editedMessageText}
                       onChange={(e) => setEditedMessageText(e.target.value)}
                     />
-                    <button
+                    <svg
+                      class="h-6 w-6 text-green-500 cursor-pointer"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      onClick={(e) => {
+                        handleDeleteMessage(
+                          e,
+                          message,
+                          editedMessageText,
+                          "saveButton"
+                        );
+                        setEditedMessageId(null); // Reset edit state
+                        setEditedMessageText("");
+                      }}
+                    >
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />{" "}
+                      <polyline points="17 21 17 13 7 13 7 21" />{" "}
+                      <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    {/* <button
                       name="saveButton"
                       onClick={(e) => {
                         handleDeleteMessage(e, message, editedMessageText);
@@ -400,15 +419,32 @@ function ChatPanel({
                       }}
                     >
                       Save
-                    </button>
-                    <button
+                    </button> */}
+                    {/* <button
                       onClick={() => {
                         setEditedMessageId(null); // Reset edit state
                         setEditedMessageText(""); // Reset input value
                       }}
                     >
                       Cancel
-                    </button>
+                    </button> */}
+                    <svg
+                      class="h-6 w-6 text-red-600 cursor-pointer"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      onClick={() => {
+                        setEditedMessageId(null); // Reset edit state
+                        setEditedMessageText("");
+                      }}
+                    >
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <line x1="9" y1="9" x2="15" y2="15" />{" "}
+                      <line x1="15" y1="9" x2="9" y2="15" />
+                    </svg>
                   </div>
                 ) : (
                   <div className="relative w-100 p-1 pb-3">
@@ -430,7 +466,7 @@ function ChatPanel({
                       />
                     )}
                     <span className="absolute bottom-0 right-0 text-[11px] pt-2">
-                      {message.modified_date || message.date
+                      {message.modified_date || message.date // convert UTC time to local browser timezone
                         ? (() => {
                             const utcTimeString =
                               message.modified_date || message.date;
@@ -455,7 +491,7 @@ function ChatPanel({
                       <>
                         <Menu placement="bottom-end">
                           <MenuHandler>
-                            <Button>...</Button>
+                            <Button className="p-1">...</Button>
                           </MenuHandler>
                           <MenuList>
                             {message.sender === loggedInUser.username ||
@@ -475,7 +511,7 @@ function ChatPanel({
                                 {!message.modified_date && (
                                   <MenuItem
                                     onClick={(e) =>
-                                      handleDeleteMessage(e, message)
+                                      handleDeleteMessage(e, message, "delete")
                                     }
                                   >
                                     Delete
@@ -544,67 +580,6 @@ function ChatPanel({
           <img src={sendIcon} alt="Send Message" className="w-6 h-6 pl-0.5" />
         </button>
       </div>
-
-      {/* <div className="InputContainer bg-gray-100 p-4 flex">
-        <input
-          type="text"
-          value={newMessage}
-          onChange={handleInputText}
-          placeholder="Type your message..."
-          className="flex-grow px-2 py-1 rounded-lg border border-gray-300"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              sendMessage();
-            }
-          }}
-        />
-
-        <input
-          type="file"
-          accept="image/*"
-          ref={inputRef}
-          style={{ display: "none" }}
-          onChange={(e) => sendImage(e)}
-        />
-        <img
-          className="emoji-icon"
-          src="https://icons.getbootstrap.com/assets/icons/emoji-smile.svg"
-          onClick={() => setShowPicker((val) => !val)}
-        /> */}
-      {/* <AudioRecorder
-          onStop={(blob) => {
-            setAudioBlob(blob);
-            handleAudioUpload(); // Upload audio immediately after recording stops
-          }}
-          render={({ onRecord, onStop }) => (
-            <div>
-              <button
-                onMouseDown={onRecord}
-                onMouseUp={onStop}
-                onMouseLeave={onStop}
-              >
-                Hold to Record and Upload
-              </button>
-            </div>
-          )}
-        /> */}
-      {/* {showPicker && (
-          <div className="absolute bottom-12 right-0">
-            <Picker
-              pickerStyle={{ width: "100%" }}
-              onEmojiClick={onEmojiClick}
-            />
-          </div>
-        )}
-        <button onClick={() => inputRef.current.click()}>
-          <img src={sendPic} alt="Choose" className="w-6 h-6" />
-        </button>
-
-        <button onClick={sendMessage}>
-          <img src={sendIcon} alt="Send Message" className="w-6 h-6" />
-        </button>
-      </div> */}
     </div>
   );
 }

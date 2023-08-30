@@ -182,13 +182,13 @@ const NewContact = ({
       <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
         <div className="relative" style={{ width: "350px" }}>
           <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-            <div className="flex flex-col items-center mt-1">
-              <div className="mb-1">
+            <div className="flex w-full flex-col items-center mt-1">
+              <div className="w-full p-1 mb-1">
                 <label className="relative block">
                   <span className="sr-only">Search</span>
                   <input
-                    className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-2 pr-2 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
-                    placeholder="Search for New Contact..."
+                    className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-1 pl-2 pr-2 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+                    placeholder="Search via username.."
                     type="text"
                     name="search"
                     onChange={handleSearchChange}
