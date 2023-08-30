@@ -49,7 +49,7 @@ export default function Register() {
       })
       .then((data) => {
         console.log(data);
-        navigate("/");
+        navigate("/login");
       })
       .catch((error) => {
         console.log("SOMETHING WENT WRONG: ", error);
