@@ -33,7 +33,7 @@ To set up the frontend locally, follow these steps:
 
    - **Navigate to the Directory**: Navigate to the frontend directory:
      ```bash
-     cd client/
+     cd client/my-app/
      ```
 
    - **Install Dependencies**: Install the required JavaScript packages by running:
