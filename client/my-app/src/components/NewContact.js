@@ -42,7 +42,7 @@ const NewContact = ({
       } catch (error) {
         console.error("Error fetching data:", error);
       }
-      console.log("Fetch and state update complete.");
+      console.log("Fetch complete.");
     }
     fetchAllUsers();
   }, []);

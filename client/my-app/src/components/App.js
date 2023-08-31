@@ -29,7 +29,7 @@ function App() {
     } catch (error) {
       navigate("/error");
     }
-    console.log("Fetch and state update complete.");
+    console.log("Fetch complete.");
   };
 
   useEffect(() => {
