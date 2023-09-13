@@ -10,6 +10,7 @@ Welcome to the Real-Time Messenger Web Application! This project enables users t
   - [Features](#features)
   - [Getting Started](#getting-started)
   - [Usage](#usage)
+  - [Note: Project Status](#note-project-status)
 
 ## Overview
 
@@ -50,6 +51,10 @@ Once you have both the backend and frontend components set up, you can start usi
 For more detailed usage instructions, check the `frontend` README.md.
 
 ---
+
+## Note: Project Status
+
+This project is currently under development and may have some debugging statements like `console.log` and `print` in the code. These statements are intended for debugging purposes and will be removed in the final version.
 
 If you encounter any issues or have suggestions for improvement, feel free to open an issue or submit a pull request.
 
