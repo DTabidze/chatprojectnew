@@ -163,28 +163,7 @@ def session():
     ):
         return {"error": "Please login"}, 401
     print(flask_session["user_id"])
-    return user.to_dict(
-        rules=(
-            "-contacts_sent.user_first_obj.contacts_received",
-            "-contacts_sent.user_first_obj.contacts_sent",
-            "-contacts_sent.user_second_obj.contacts_sent",
-            "-contacts_sent.user_second_obj.contacts_received",
-            "-contacts_received.user_first_obj.contacts_sent",
-            "-contacts_received.user_first_obj.contacts_received",
-            "-contacts_received.user_second_obj.contacts_sent",
-            "-contacts_received.user_second_obj.contacts_received",
-            "-contacts_sent.user_first_obj.-sent_messages",
-            "-contacts_sent.user_first_obj.recieved_massages",
-            "-contacts_sent.user_second_obj.-sent_messages",
-            "-contacts_sent.user_second_obj.recieved_massages",
-            "-contacts_received.user_first_obj.-sent_messages",
-            "-contacts_received.user_first_obj.recieved_massages",
-            "-contacts_received.user_second_obj.-sent_messages",
-            "-contacts_received.user_second_obj.recieved_massages",
-            "-sent_messages",
-            "-recieved_massages",
-        )
-    )
+    return user.to_dict()
 
 
 @app.route("/login", methods=["POST"])
@@ -204,28 +183,7 @@ def login():
     print(flask_session["user_id"], flask_session["session_id"])
     GLOBAL_SESSIONS.add(flask_session["session_id"])
     print(GLOBAL_SESSIONS)
-    return user.to_dict(
-        rules=(
-            "-contacts_sent.user_first_obj.contacts_received",
-            "-contacts_sent.user_first_obj.contacts_sent",
-            "-contacts_sent.user_second_obj.contacts_sent",
-            "-contacts_sent.user_second_obj.contacts_received",
-            "-contacts_received.user_first_obj.contacts_sent",
-            "-contacts_received.user_first_obj.contacts_received",
-            "-contacts_received.user_second_obj.contacts_sent",
-            "-contacts_received.user_second_obj.contacts_received",
-            "-contacts_sent.user_first_obj.-sent_messages",
-            "-contacts_sent.user_first_obj.recieved_massages",
-            "-contacts_sent.user_second_obj.-sent_messages",
-            "-contacts_sent.user_second_obj.recieved_massages",
-            "-contacts_received.user_first_obj.-sent_messages",
-            "-contacts_received.user_first_obj.recieved_massages",
-            "-contacts_received.user_second_obj.-sent_messages",
-            "-contacts_received.user_second_obj.recieved_massages",
-            "-sent_messages",
-            "-recieved_massages",
-        )
-    )
+    return user.to_dict()
 
 
 @app.route("/logout", methods=["DELETE"])
@@ -244,28 +202,7 @@ def get_user_by_id(id):
         return {"error": "user not found"}, 404
     if request.method == "GET":
         return (
-            user.to_dict(
-                rules=(
-                    "-contacts_sent.user_first_obj.contacts_received",
-                    "-contacts_sent.user_first_obj.contacts_sent",
-                    "-contacts_sent.user_second_obj.contacts_sent",
-                    "-contacts_sent.user_second_obj.contacts_received",
-                    "-contacts_received.user_first_obj.contacts_sent",
-                    "-contacts_received.user_first_obj.contacts_received",
-                    "-contacts_received.user_second_obj.contacts_sent",
-                    "-contacts_received.user_second_obj.contacts_received",
-                    "-contacts_sent.user_first_obj.-sent_messages",
-                    "-contacts_sent.user_first_obj.recieved_massages",
-                    "-contacts_sent.user_second_obj.-sent_messages",
-                    "-contacts_sent.user_second_obj.recieved_massages",
-                    "-contacts_received.user_first_obj.-sent_messages",
-                    "-contacts_received.user_first_obj.recieved_massages",
-                    "-contacts_received.user_second_obj.-sent_messages",
-                    "-contacts_received.user_second_obj.recieved_massages",
-                    "-sent_messages",
-                    "-recieved_massages",
-                )
-            ),
+            user.to_dict(),
             200,
         )
     elif request.method == "PATCH":
@@ -275,28 +212,7 @@ def get_user_by_id(id):
                 setattr(user, key, data[key])
             db.session.commit()
             return (
-                user.to_dict(
-                    rules=(
-                        "-contacts_sent.user_first_obj.contacts_received",
-                        "-contacts_sent.user_first_obj.contacts_sent",
-                        "-contacts_sent.user_second_obj.contacts_sent",
-                        "-contacts_sent.user_second_obj.contacts_received",
-                        "-contacts_received.user_first_obj.contacts_sent",
-                        "-contacts_received.user_first_obj.contacts_received",
-                        "-contacts_received.user_second_obj.contacts_sent",
-                        "-contacts_received.user_second_obj.contacts_received",
-                        "-contacts_sent.user_first_obj.-sent_messages",
-                        "-contacts_sent.user_first_obj.recieved_massages",
-                        "-contacts_sent.user_second_obj.-sent_messages",
-                        "-contacts_sent.user_second_obj.recieved_massages",
-                        "-contacts_received.user_first_obj.-sent_messages",
-                        "-contacts_received.user_first_obj.recieved_massages",
-                        "-contacts_received.user_second_obj.-sent_messages",
-                        "-contacts_received.user_second_obj.recieved_massages",
-                        "-sent_messages",
-                        "-recieved_massages",
-                    )
-                ),
+                user.to_dict(),
                 200,
             )
         except (IntegrityError, ValueError) as ie:
@@ -315,30 +231,7 @@ def get_users():
         all = User.query.all()
         users = []
         for user in all:
-            users.append(
-                user.to_dict(
-                    rules=(
-                        "-contacts_sent.user_first_obj.contacts_received",
-                        "-contacts_sent.user_first_obj.contacts_sent",
-                        "-contacts_sent.user_second_obj.contacts_sent",
-                        "-contacts_sent.user_second_obj.contacts_received",
-                        "-contacts_received.user_first_obj.contacts_sent",
-                        "-contacts_received.user_first_obj.contacts_received",
-                        "-contacts_received.user_second_obj.contacts_sent",
-                        "-contacts_received.user_second_obj.contacts_received",
-                        "-contacts_sent.user_first_obj.-sent_messages",
-                        "-contacts_sent.user_first_obj.recieved_massages",
-                        "-contacts_sent.user_second_obj.-sent_messages",
-                        "-contacts_sent.user_second_obj.recieved_massages",
-                        "-contacts_received.user_first_obj.-sent_messages",
-                        "-contacts_received.user_first_obj.recieved_massages",
-                        "-contacts_received.user_second_obj.-sent_messages",
-                        "-contacts_received.user_second_obj.recieved_massages",
-                        "-sent_messages",
-                        "-recieved_massages",
-                    )
-                )
-            )
+            users.append(user.to_dict())
         return users
     elif request.method == "POST":
         try:
@@ -349,28 +242,7 @@ def get_users():
             db.session.add(user)
             db.session.commit()
             return (
-                user.to_dict(
-                    rules=(
-                        "-contacts_sent.user_first_obj.contacts_received",
-                        "-contacts_sent.user_first_obj.contacts_sent",
-                        "-contacts_sent.user_second_obj.contacts_sent",
-                        "-contacts_sent.user_second_obj.contacts_received",
-                        "-contacts_received.user_first_obj.contacts_sent",
-                        "-contacts_received.user_first_obj.contacts_received",
-                        "-contacts_received.user_second_obj.contacts_sent",
-                        "-contacts_received.user_second_obj.contacts_received",
-                        "-contacts_sent.user_first_obj.-sent_messages",
-                        "-contacts_sent.user_first_obj.recieved_massages",
-                        "-contacts_sent.user_second_obj.-sent_messages",
-                        "-contacts_sent.user_second_obj.recieved_massages",
-                        "-contacts_received.user_first_obj.-sent_messages",
-                        "-contacts_received.user_first_obj.recieved_massages",
-                        "-contacts_received.user_second_obj.-sent_messages",
-                        "-contacts_received.user_second_obj.recieved_massages",
-                        "-sent_messages",
-                        "-recieved_massages",
-                    )
-                ),
+                user.to_dict(),
                 201,
             )
         except (IntegrityError, ValueError) as ie:
@@ -463,24 +335,7 @@ def contact_list():
         all = Contact.query.all()
         contacts = []
         for contact in all:
-            contacts.append(
-                contact.to_dict(
-                    rules=(
-                        "-user_first_obj.contacts_sent.user_first_obj",
-                        "-user_first_obj.contacts_sent.user_second_obj",
-                        "-user_second_obj.contacts_sent.user_first_obj",
-                        "-user_second_obj.contacts_sent.user_second_obj",
-                        "-user_first_obj.contacts_received.user_first_obj",
-                        "-user_first_obj.contacts_received.user_second_obj",
-                        "-user_second_obj.contacts_received.user_first_obj",
-                        "-user_second_obj.contacts_received.user_second_obj",
-                        "-user_first_obj.-sent_messages",
-                        "-user_first_obj.recieved_massages",
-                        "-user_second_obj.-sent_messages",
-                        "-user_second_obj.recieved_massages",
-                    )
-                )
-            )
+            contacts.append(contact.to_dict())
         return contacts, 200
     elif request.method == "POST":
         try:
@@ -491,22 +346,7 @@ def contact_list():
             db.session.add(contact)
             db.session.commit()
             return (
-                contact.to_dict(
-                    rules=(
-                        "-user_first_obj.contacts_sent.user_first_obj",
-                        "-user_first_obj.contacts_sent.user_second_obj",
-                        "-user_second_obj.contacts_sent.user_first_obj",
-                        "-user_second_obj.contacts_sent.user_second_obj",
-                        "-user_first_obj.contacts_received.user_first_obj",
-                        "-user_first_obj.contacts_received.user_second_obj",
-                        "-user_second_obj.contacts_received.user_first_obj",
-                        "-user_second_obj.contacts_received.user_second_obj",
-                        "-user_first_obj.-sent_messages",
-                        "-user_first_obj.recieved_massages",
-                        "-user_second_obj.-sent_messages",
-                        "-user_second_obj.recieved_massages",
-                    )
-                ),
+                contact.to_dict(),
                 201,
             )
         except (IntegrityError, ValueError) as ie:
@@ -595,4 +435,4 @@ def upload_file():
 if __name__ == "__main__":
     # app.run(port=5555, debug=True)
     # socketio.run(app, host="192.168.1.162", port=8080, debug=True)
-    socketio.run(app, port=8080, host="10.129.3.117", debug=True, log_output=True)
+    socketio.run(app, port=8080, host="192.168.0.101", debug=True, log_output=True)

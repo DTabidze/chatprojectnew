@@ -164,4 +164,8 @@ class Contact(db.Model, SerializerMixin):
         "-user_first_obj.contacts_received.user_second_obj",
         "-user_second_obj.contacts_received.user_first_obj",
         "-user_second_obj.contacts_received.user_second_obj",
+        "-user_first_obj.-sent_messages",
+        "-user_first_obj.recieved_massages",
+        "-user_second_obj.-sent_messages",
+        "-user_second_obj.recieved_massages",
     )
