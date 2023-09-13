@@ -110,7 +110,7 @@ function MainPanel() {
 
   useEffect(() => {
     // Create the socket connection once when the component mounts
-    const newSocket = io("192.168.0.101:8080");
+    const newSocket = io(SERVER_BASE_URL.slice(7));
     setSocket(newSocket);
 
     // Clean up the socket connection when the component unmounts

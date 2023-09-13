@@ -44,8 +44,6 @@ To set up the frontend locally, follow these steps:
 
    - **Update Configuration**: Open the `src/components/config.js` file and update the `SERVER_BASE_URL` according to your backend server's URL.
 
-   - **Socket Server IP**: If needed, go to `src/components/MainPanel.js` and modify the socket server IP to match your backend server's IP.
-
    - **Start the Development Server**: Start the frontend development server:
      ```bash
      npm start
